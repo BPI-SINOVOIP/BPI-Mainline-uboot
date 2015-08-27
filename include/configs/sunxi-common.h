@@ -390,10 +390,11 @@ extern int soft_i2c_gpio_scl;
 #define BOOT_TARGET_DEVICES_USB(func)
 #endif
 
+/* bpi, change boot sequence */
 #define BOOT_TARGET_DEVICES(func) \
-	BOOT_TARGET_DEVICES_MMC(func) \
 	BOOT_TARGET_DEVICES_SCSI(func) \
 	BOOT_TARGET_DEVICES_USB(func) \
+	BOOT_TARGET_DEVICES_MMC(func) \
 	func(PXE, pxe, na) \
 	func(DHCP, dhcp, na)
 

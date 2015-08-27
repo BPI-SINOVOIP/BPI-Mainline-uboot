@@ -268,6 +268,37 @@ int axp221_set_eldo(int eldo_num, unsigned int mvolt)
 	return pmic_bus_setbits(AXP221_OUTPUT_CTRL2, bits);
 }
 
+/* bpi, set gldo power */
+int axp221_set_gldo(int gldo_num, unsigned int mvolt)
+{
+	int ret;
+	u8 cfg = axp221_mvolt_to_cfg(mvolt, 700, 3300, 100);
+	u8 addr;
+	u8 ldoaddr;
+
+	switch (gldo_num) {
+	case 0:
+		addr = AXP221_GPIO0_CTRL;
+		ldoaddr = AXP221_GPIO0_LDO;
+		break;
+	case 1:
+		addr = AXP221_GPIO1_CTRL;
+		ldoaddr = AXP221_GPIO1_LDO;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	if (mvolt == 0)
+		return pmic_bus_write(addr, 0x07); //OFF
+
+	ret = pmic_bus_write(ldoaddr, cfg);
+	if (ret)
+		return ret;
+
+	return pmic_bus_write(addr, 0x03); //ON
+}
+
 int axp221_init(void)
 {
 	/* This cannot be 0 because it is used in SPL before BSS is ready */

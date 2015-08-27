@@ -47,6 +47,13 @@
 #define AXP221_VBUS_IPSOUT_DRIVEBUS	(1 << 2)
 #define AXP221_MISC_CTRL	0x8f
 #define AXP221_MISC_CTRL_N_VBUSEN_FUNC	(1 << 4)
+
+/* bpi, gldo address*/
+#define AXP221_GPIO0_CTRL	0x90
+#define AXP221_GPIO0_LDO	0x91
+#define AXP221_GPIO1_CTRL	0x92
+#define AXP221_GPIO1_LDO	0x93
+
 #define AXP221_PAGE		0xff
 
 /* Page 1 addresses */
@@ -76,5 +83,9 @@ int axp221_set_aldo1(unsigned int mvolt);
 int axp221_set_aldo2(unsigned int mvolt);
 int axp221_set_aldo3(unsigned int mvolt);
 int axp221_set_eldo(int eldo_num, unsigned int mvolt);
+
+/* bpi, gldo power */
+int axp221_set_gldo(int gldo_num, unsigned int mvolt);
+
 int axp221_init(void);
 int axp221_get_sid(unsigned int *sid);
