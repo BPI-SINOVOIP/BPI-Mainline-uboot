@@ -427,6 +427,13 @@ void sunxi_board_init(void)
 #endif
 	power_failed |= axp221_set_dcdc5(1500); /* VCC-DRAM */
 	power_failed |= axp221_set_dldo1(CONFIG_AXP221_DLDO1_VOLT);
+
+	/* bpi, enable dldo2, dldo3, gldo0 and gldp1 */
+	power_failed |= axp221_set_dldo2(2800);
+	power_failed |= axp221_set_dldo3(3300);
+	power_failed |= axp221_set_gldo(0, 3000);
+	power_failed |= axp221_set_gldo(1, 3000);
+
 	power_failed |= axp221_set_dldo4(CONFIG_AXP221_DLDO4_VOLT);
 	power_failed |= axp221_set_aldo1(CONFIG_AXP221_ALDO1_VOLT);
 	power_failed |= axp221_set_aldo2(CONFIG_AXP221_ALDO2_VOLT);
