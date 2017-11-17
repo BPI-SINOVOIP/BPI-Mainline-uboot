@@ -1,6 +1,6 @@
 # BPI-Mainline-uboot
 
-  u-boot V2015.07
+  U-Boot 2017.11
 
   http://git.denx.de/u-boot.git
 
