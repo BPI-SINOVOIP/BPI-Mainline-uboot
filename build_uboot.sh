@@ -1,5 +1,6 @@
 #!/bin/bash
-export PATH=$TOPDIR/toolchains/gcc-linaro-7.1.1-2017.08-x86_64_arm-linux-gnueabihf:$PATH
+TOPDIR=`pwd`
+export PATH=$TOPDIR/toolchains/gcc-linaro-7.1.1-2017.08-x86_64_arm-linux-gnueabihf/bin:$PATH
 cd u-boot-sunxi
 ./bpi-m2z.sh
 ./bpi-m2m.sh
