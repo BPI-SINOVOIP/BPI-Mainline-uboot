@@ -109,26 +109,6 @@
 	};
 };
 
-&cpu0 {
-	cpu-supply = <&reg_sy8113b>;
-};
-
-&de {
-	status = "okay";
-};
-
-&ehci0 {
-	status = "okay";
-};
-
-&hdmi {
-	status = "okay";
-};
-
-&mixer0 {
-	status = "okay";
-};
-
 &mmc0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc0_pins_a>;
@@ -161,28 +141,9 @@
 	};
 };
 
-&ohci0 {
-	status = "okay";
-};
-
-&tcon0 {
-	status = "okay";
-};
-
 &uart0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart0_pins_a>;
-	status = "okay";
-};
-
-&uart1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart1_pins>, <&uart1_rts_cts_pins>;
-	status = "okay";
-};
-
-&usb_otg {
-	dr_mode = "otg";
 	status = "okay";
 };
 
