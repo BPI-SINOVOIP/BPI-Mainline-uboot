@@ -360,14 +360,6 @@ config ENV_IS_IN_UBI
 
 endchoice
 
-config ENV_AES
-	bool "AES-128 encryption for stored environment (DEPRECATED)"
-	help
-	  Enable this to have the on-device stored environment be encrypted
-	  with AES-128.  The implementation here however has security
-	  complications and is not recommended for use.  Please see
-	  CVE-2017-3225 and CVE-2017-3226 for more details.
-
 config ENV_FAT_INTERFACE
 	string "Name of the block device for the environment"
 	depends on ENV_IS_IN_FAT
@@ -432,6 +424,24 @@ config ENV_UBI_VOLUME
 	depends on ENV_IS_IN_UBI
 	help
 	  Name of the volume that you want to store the environment in.
+
+endif
+
+if ARCH_ROCKCHIP
+
+config ENV_OFFSET
+	hex
+	depends on !ENV_IS_IN_UBI
+	depends on !ENV_IS_NOWHERE
+	default 0x3f8000
+	help
+	  Offset from the start of the device (or partition)
+
+config ENV_SIZE
+	hex
+	default 0x8000
+	help
+	  Size of the environment storage area
 
 endif
 

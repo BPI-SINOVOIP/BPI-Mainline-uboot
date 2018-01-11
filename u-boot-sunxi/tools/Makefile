@@ -58,21 +58,17 @@ hostprogs-y += dumpimage mkimage
 hostprogs-$(CONFIG_FIT_SIGNATURE) += fit_info fit_check_sign
 
 FIT_SIG_OBJS-$(CONFIG_FIT_SIGNATURE) := common/image-sig.o
-# Flattened device tree objects
-LIBFDT_CSRCS := fdt.c fdt_ro.c fdt_wip.c fdt_sw.c fdt_rw.c fdt_strerror.c  \
-			fdt_empty_tree.c fdt_addresses.c fdt_overlay.c \
-			fdt_region.c
 
-# Unfortunately setup.py below cannot handle srctree being ".." which it often
-# is. It fails with an error like:
-# Fatal error: can't create build/temp.linux-x86_64-2.7/../lib/libfdt/fdt.o:
-#    No such file or directory
-# To fix this, use an absolute path.
-libfdt_tree := $(shell readlink -f $(srctree)/lib/libfdt)
+# The following files are synced with upstream DTC.
+# Use synced versions from scripts/dtc/libfdt/.
+LIBFDT_SRCS_SYNCED := fdt.c fdt_wip.c fdt_sw.c fdt_strerror.c fdt_empty_tree.c \
+		      fdt_addresses.c fdt_overlay.c
+# The following files are locally modified for U-Boot (unfotunately).
+# Use U-Boot own versions from lib/libfdt/.
+LIBFDT_SRCS_UNSYNCED := fdt_ro.c fdt_rw.c fdt_region.c
 
-LIBFDT_SRCS := $(addprefix $(libfdt_tree)/, $(LIBFDT_CSRCS))
-LIBFDT_SWIG := $(addprefix $(libfdt_tree)/, pylibfdt/libfdt.i)
-LIBFDT_OBJS := $(addprefix lib/libfdt/, $(patsubst %.c, %.o, $(LIBFDT_CSRCS)))
+LIBFDT_OBJS := $(addprefix libfdt/, $(patsubst %.c, %.o, $(LIBFDT_SRCS_SYNCED))) \
+	       $(addprefix lib/libfdt/, $(patsubst %.c, %.o, $(LIBFDT_SRCS_UNSYNCED)))
 
 RSA_OBJS-$(CONFIG_FIT_SIGNATURE) := $(addprefix lib/rsa/, \
 					rsa-sign.o rsa-verify.o rsa-checksum.o \
@@ -122,23 +118,6 @@ dumpimage-objs := $(dumpimage-mkimage-objs) dumpimage.o
 mkimage-objs   := $(dumpimage-mkimage-objs) mkimage.o
 fit_info-objs   := $(dumpimage-mkimage-objs) fit_info.o
 fit_check_sign-objs   := $(dumpimage-mkimage-objs) fit_check_sign.o
-
-# Unfortunately setup.py (or actually the Python distutil implementation)
-# puts files into the same directory as the .i file. We cannot touch the source
-# directory, so we copy the .i file into the tools/ build subdirectory before
-# calling setup. This directory is safe to write to. This ensures that we get
-# all three files in $(obj)/tools: _libfdt.so, libfdt.py and libfdt_wrap.c
-# The latter is a temporary file which we could actually remove.
-tools/_libfdt.so: $(LIBFDT_SRCS) $(LIBFDT_SWIG)
-	$(Q)cp $(LIBFDT_SWIG) tools/.
-	$(Q)unset CC; \
-	unset CROSS_COMPILE; \
-	LDFLAGS="$(HOSTLDFLAGS)" CFLAGS= VERSION="u-boot-$(UBOOTVERSION)" \
-		CPPFLAGS="$(_hostc_flags)" OBJDIR=tools \
-		SOURCES="$(LIBFDT_SRCS) tools/libfdt.i" \
-		SWIG_OPTS="-I$(srctree)/lib/libfdt -I$(srctree)/lib" \
-		$(PYTHON) $(libfdt_tree)/pylibfdt/setup.py --quiet build_ext \
-			--build-lib tools
 
 ifneq ($(CONFIG_MX23)$(CONFIG_MX28),)
 # Add CONFIG_MXS into host CFLAGS, so we can check whether or not register
@@ -230,10 +209,6 @@ $(obj)/lib/%.c $(obj)/common/%.c $(obj)/env/%.c:
 clean-dirs := lib common
 
 always := $(hostprogs-y)
-
-# Build a libfdt Python module if swig is available
-# Use 'sudo apt-get install swig libpython-dev' to enable this
-always += $(if $(shell which swig 2> /dev/null),_libfdt.so)
 
 # Generated LCD/video logo
 LOGO_H = $(objtree)/include/bmp_logo.h

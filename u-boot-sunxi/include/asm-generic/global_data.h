@@ -36,7 +36,7 @@ typedef struct global_data {
 #if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
 	unsigned long fb_base;		/* Base address of framebuffer mem */
 #endif
-#if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
+#if defined(CONFIG_POST)
 	unsigned long post_log_word;	/* Record POST activities */
 	unsigned long post_log_res;	/* success of POST test */
 	unsigned long post_init_f_time;	/* When post_init_f started */
@@ -114,6 +114,11 @@ typedef struct global_data {
 	struct bootstage_data *bootstage;	/* Bootstage information */
 	struct bootstage_data *new_bootstage;	/* Relocated bootstage info */
 #endif
+#ifdef CONFIG_LOG
+	int log_drop_count;		/* Number of dropped log messages */
+	int default_log_level;		/* For devices with no filters */
+	struct list_head log_head;	/* List of struct log_device */
+#endif
 } gd_t;
 #endif
 
@@ -141,5 +146,6 @@ typedef struct global_data {
 #define GD_FLG_RECORD		0x01000	/* Record console		   */
 #define GD_FLG_ENV_DEFAULT	0x02000 /* Default variable flag	   */
 #define GD_FLG_SPL_EARLY_INIT	0x04000 /* Early SPL init is done	   */
+#define GD_FLG_LOG_READY	0x08000 /* Log system is ready for use	   */
 
 #endif /* __ASM_GENERIC_GBL_DATA_H */

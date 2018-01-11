@@ -18,13 +18,11 @@ obj-$(CONFIG_SEABIOS) += coreboot_table.o
 obj-y	+= early_cmos.o
 obj-$(CONFIG_EFI) += efi/
 obj-y	+= e820.o
-obj-y	+= gcc.o
 obj-y	+= init_helpers.o
 obj-y	+= interrupts.o
 obj-y	+= lpc-uclass.o
 obj-y	+= mpspec.o
 obj-$(CONFIG_ENABLE_MRC_CACHE) += mrccache.o
-obj-y += cmd_mtrr.o
 obj-y	+= northbridge-uclass.o
 obj-$(CONFIG_I8259_PIC) += i8259.o
 obj-$(CONFIG_I8254_TIMER) += i8254.o
@@ -49,12 +47,7 @@ endif
 obj-$(CONFIG_HAVE_FSP) += fsp/
 obj-$(CONFIG_SPL_BUILD) += spl.o
 
-extra-$(CONFIG_USE_PRIVATE_LIBGCC) += lib.a
-
-NORMAL_LIBGCC = $(shell $(CC) $(PLATFORM_CPPFLAGS) -print-libgcc-file-name)
-OBJCOPYFLAGS := --prefix-symbols=__normal_
-$(obj)/lib.a: $(NORMAL_LIBGCC) FORCE
-	$(call if_changed,objcopy)
+lib-$(CONFIG_USE_PRIVATE_LIBGCC) += div64.o
 
 ifeq ($(CONFIG_$(SPL_)X86_64),)
 obj-$(CONFIG_EFI_APP) += crt0_ia32_efi.o reloc_ia32_efi.o

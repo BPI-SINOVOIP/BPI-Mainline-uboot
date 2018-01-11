@@ -71,6 +71,8 @@ static const char * const compat_names[COMPAT_COUNT] = {
 	COMPAT(ALTERA_SOCFPGA_F2SDR0, "altr,socfpga-fpga2sdram0-bridge"),
 	COMPAT(ALTERA_SOCFPGA_F2SDR1, "altr,socfpga-fpga2sdram1-bridge"),
 	COMPAT(ALTERA_SOCFPGA_F2SDR2, "altr,socfpga-fpga2sdram2-bridge"),
+	COMPAT(ALTERA_SOCFPGA_FPGA0, "altr,socfpga-a10-fpga-mgr"),
+	COMPAT(ALTERA_SOCFPGA_NOC, "altr,socfpga-a10-noc"),
 };
 
 const char *fdtdec_get_compatible(enum fdt_compat_id id)
@@ -1174,21 +1176,33 @@ int fdtdec_setup_memory_size(void)
 #if defined(CONFIG_NR_DRAM_BANKS)
 int fdtdec_setup_memory_banksize(void)
 {
-	int bank, ret, mem;
+	int bank, ret, mem, reg = 0;
 	struct fdt_resource res;
 
-	mem = fdt_path_offset(gd->fdt_blob, "/memory");
+	mem = fdt_node_offset_by_prop_value(gd->fdt_blob, -1, "device_type",
+					    "memory", 7);
 	if (mem < 0) {
 		debug("%s: Missing /memory node\n", __func__);
 		return -EINVAL;
 	}
 
 	for (bank = 0; bank < CONFIG_NR_DRAM_BANKS; bank++) {
-		ret = fdt_get_resource(gd->fdt_blob, mem, "reg", bank, &res);
-		if (ret == -FDT_ERR_NOTFOUND)
-			break;
-		if (ret != 0)
+		ret = fdt_get_resource(gd->fdt_blob, mem, "reg", reg++, &res);
+		if (ret == -FDT_ERR_NOTFOUND) {
+			reg = 0;
+			mem = fdt_node_offset_by_prop_value(gd->fdt_blob, mem,
+							    "device_type",
+							    "memory", 7);
+			if (mem == -FDT_ERR_NOTFOUND)
+				break;
+
+			ret = fdt_get_resource(gd->fdt_blob, mem, "reg", reg++, &res);
+			if (ret == -FDT_ERR_NOTFOUND)
+				break;
+		}
+		if (ret != 0) {
 			return -EINVAL;
+		}
 
 		gd->bd->bi_dram[bank].start = (phys_addr_t)res.start;
 		gd->bd->bi_dram[bank].size =
@@ -1266,7 +1280,11 @@ int fdtdec_setup(void)
 # endif
 # ifdef CONFIG_OF_EMBED
 	/* Get a pointer to the FDT */
+#  ifdef CONFIG_SPL_BUILD
+	gd->fdt_blob = __dtb_dt_spl_begin;
+#  else
 	gd->fdt_blob = __dtb_dt_begin;
+#  endif
 # elif defined CONFIG_OF_SEPARATE
 #  ifdef CONFIG_SPL_BUILD
 	/* FDT is at end of BSS unless it is in a different memory region */

@@ -569,11 +569,6 @@ static const struct spi_clkreg spi_clkregs[] = {
 		.sel_shift = CLK_SPI5_PLL_SEL_SHIFT, },
 };
 
-static inline u32 extract_bits(u32 val, unsigned width, unsigned shift)
-{
-	return (val >> shift) & ((1 << width) - 1);
-}
-
 static ulong rk3399_spi_get_clk(struct rk3399_cru *cru, ulong clk_id)
 {
 	const struct spi_clkreg *spiclk = NULL;
@@ -590,7 +585,8 @@ static ulong rk3399_spi_get_clk(struct rk3399_cru *cru, ulong clk_id)
 	}
 
 	val = readl(&cru->clksel_con[spiclk->reg]);
-	div = extract_bits(val, CLK_SPI_PLL_DIV_CON_WIDTH, spiclk->div_shift);
+	div = bitfield_extract(val, spiclk->div_shift,
+			       CLK_SPI_PLL_DIV_CON_WIDTH);
 
 	return DIV_TO_RATE(GPLL_HZ, div);
 }
@@ -1033,11 +1029,22 @@ static int rk3399_clk_ofdata_to_platdata(struct udevice *dev)
 static int rk3399_clk_bind(struct udevice *dev)
 {
 	int ret;
+	struct udevice *sys_child;
+	struct sysreset_reg *priv;
 
 	/* The reset driver does not have a device node, so bind it here */
-	ret = device_bind_driver(gd->dm_root, "rk3399_sysreset", "reset", &dev);
-	if (ret)
-		printf("Warning: No RK3399 reset driver: ret=%d\n", ret);
+	ret = device_bind_driver(dev, "rockchip_sysreset", "sysreset",
+				 &sys_child);
+	if (ret) {
+		debug("Warning: No sysreset driver: ret=%d\n", ret);
+	} else {
+		priv = malloc(sizeof(struct sysreset_reg));
+		priv->glb_srst_fst_value = offsetof(struct rk3399_cru,
+						    glb_srst_fst_value);
+		priv->glb_srst_snd_value = offsetof(struct rk3399_cru,
+						    glb_srst_snd_value);
+		sys_child->priv = priv;
+	}
 
 	return 0;
 }

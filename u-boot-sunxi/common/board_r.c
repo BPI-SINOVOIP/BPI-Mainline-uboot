@@ -30,7 +30,6 @@
 #if defined(CONFIG_CMD_KGDB)
 #include <kgdb.h>
 #endif
-#include <logbuff.h>
 #include <malloc.h>
 #include <mapmem.h>
 #ifdef CONFIG_BITBANGMII
@@ -196,19 +195,6 @@ static int initr_addr_map(void)
 {
 	init_addr_map();
 
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_LOGBUFFER
-unsigned long logbuffer_base(void)
-{
-	return gd->ram_top - LOGBUFF_LEN;
-}
-
-static int initr_logbuffer(void)
-{
-	logbuff_init_ptrs();
 	return 0;
 }
 #endif
@@ -628,7 +614,7 @@ static int initr_ide(void)
 }
 #endif
 
-#if defined(CONFIG_PRAM) || defined(CONFIG_LOGBUFFER)
+#if defined(CONFIG_PRAM)
 /*
  * Export available size of memory for Linux, taking into account the
  * protected RAM at top of memory
@@ -640,10 +626,6 @@ int initr_mem(void)
 
 # ifdef CONFIG_PRAM
 	pram = env_get_ulong("pram", 10, CONFIG_PRAM);
-# endif
-# if defined(CONFIG_LOGBUFFER) && !defined(CONFIG_ALT_LB_ADDR)
-	/* Also take the logbuffer into account (pram is in kB) */
-	pram += (LOGBUFF_LEN + LOGBUFF_OVERHEAD) / 1024;
 # endif
 	sprintf(memsz, "%ldk", (long int) ((gd->ram_size / 1024) - pram));
 	env_set("mem", memsz);
@@ -709,6 +691,7 @@ static init_fnc_t init_sequence_r[] = {
 #endif
 	initr_barrier,
 	initr_malloc,
+	log_init,
 	initr_bootstage,	/* Needs malloc() but has its own timer */
 	initr_console_record,
 #ifdef CONFIG_SYS_NONCACHED_MEMORY
@@ -753,9 +736,6 @@ static init_fnc_t init_sequence_r[] = {
 	board_early_init_r,
 #endif
 	INIT_FUNC_WATCHDOG_RESET
-#ifdef CONFIG_LOGBUFFER
-	initr_logbuffer,
-#endif
 #ifdef CONFIG_POST
 	initr_post_backlog,
 #endif
@@ -877,7 +857,7 @@ static init_fnc_t init_sequence_r[] = {
 	INIT_FUNC_WATCHDOG_RESET
 	initr_bedbug,
 #endif
-#if defined(CONFIG_PRAM) || defined(CONFIG_LOGBUFFER)
+#if defined(CONFIG_PRAM)
 	initr_mem,
 #endif
 #ifdef CONFIG_PS2KBD
@@ -905,6 +885,7 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 #if !defined(CONFIG_X86) && !defined(CONFIG_ARM) && !defined(CONFIG_ARM64)
 	gd = new_gd;
 #endif
+	gd->flags &= ~GD_FLG_LOG_READY;
 
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
 	for (i = 0; i < ARRAY_SIZE(init_sequence_r); i++)

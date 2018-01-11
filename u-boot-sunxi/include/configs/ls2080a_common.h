@@ -221,8 +221,6 @@ unsigned long long get_qixis_addr(void);
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
-#define CONFIG_PANIC_HANG	/* do not reset board on panic */
-
 #define CONFIG_SPL_BSS_START_ADDR	0x80100000
 #define CONFIG_SPL_BSS_MAX_SIZE		0x00100000
 #define CONFIG_SPL_FRAMEWORK
@@ -237,7 +235,7 @@ unsigned long long get_qixis_addr(void);
 #endif
 #define CONFIG_SYS_SPL_MALLOC_SIZE	0x00100000
 #define CONFIG_SYS_SPL_MALLOC_START	0x80200000
-#define CONFIG_SYS_MONITOR_LEN		(640 * 1024)
+#define CONFIG_SYS_MONITOR_LEN		(1024 * 1024)
 
 #define CONFIG_SYS_BOOTM_LEN   (64 << 20)      /* Increase max gunzip size */
 

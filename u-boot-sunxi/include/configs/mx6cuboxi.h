@@ -23,12 +23,10 @@
 
 /* SATA Configuration */
 #ifdef CONFIG_CMD_SATA
-#define CONFIG_DWC_AHSATA
 #define CONFIG_SYS_SATA_MAX_DEVICE      1
 #define CONFIG_DWC_AHSATA_PORT_ID       0
 #define CONFIG_DWC_AHSATA_BASE_ADDR     SATA_ARB_BASE_ADDR
 #define CONFIG_LBA48
-#define CONFIG_LIBATA
 #endif
 
 /* Ethernet Configuration */
@@ -121,11 +119,6 @@
 		"if test $fdtfile = undefined; then " \
 			"echo WARNING: Could not determine dtb to use; fi; \0" \
 	BOOTENV
-
-#define CONFIG_BOOTCOMMAND \
-	"run findfdt; " \
-	"run finduuid; " \
-	"run distro_bootcmd"
 
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 0) \

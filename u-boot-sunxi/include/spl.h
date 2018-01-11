@@ -7,6 +7,8 @@
 #ifndef	_SPL_H_
 #define	_SPL_H_
 
+#include <binman_sym.h>
+
 /* Platform-specific defines */
 #include <linux/compiler.h>
 #include <asm/spl.h>
@@ -23,8 +25,11 @@
 struct spl_image_info {
 	const char *name;
 	u8 os;
-	ulong load_addr;
-	ulong entry_point;
+	uintptr_t load_addr;
+	uintptr_t entry_point;
+#if CONFIG_IS_ENABLED(LOAD_FIT)
+	void *fdt_addr;
+#endif
 	u32 size;
 	u32 flags;
 	void *arg;
@@ -47,6 +52,15 @@ struct spl_load_info {
 	ulong (*read)(struct spl_load_info *load, ulong sector, ulong count,
 		      void *buf);
 };
+
+/*
+ * We need to know the position of U-Boot in memory so we can jump to it. We
+ * allow any U-Boot binary to be used (u-boot.bin, u-boot-nodtb.bin,
+ * u-boot.img), hence the '_any'. These is no checking here that the correct
+ * image is found. For * example if u-boot.img is used we don't check that
+ * spl_parse_image_header() can parse a valid header.
+ */
+binman_sym_extern(ulong, u_boot_any, pos);
 
 /**
  * spl_load_simple_fit() - Loads a fit image from a device.
@@ -268,7 +282,10 @@ int spl_dfu_cmd(int usbctrl, char *dfu_alt_info, char *interface, char *devstr);
 int spl_mmc_load_image(struct spl_image_info *spl_image,
 		       struct spl_boot_device *bootdev);
 
-void bl31_entry(void);
+/**
+ * spl_invoke_atf - boot using an ARM trusted firmware image
+ */
+void spl_invoke_atf(struct spl_image_info *spl_image);
 
 /**
  * board_return_to_bootrom - allow for boards to continue with the boot ROM

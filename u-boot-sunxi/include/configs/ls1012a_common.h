@@ -65,7 +65,7 @@
 #define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_ENV_SIZE			0x40000          /* 256KB */
-#define CONFIG_ENV_OFFSET		0x200000        /* 2MB */
+#define CONFIG_ENV_OFFSET		0x300000        /* 3MB */
 #define CONFIG_ENV_SECT_SIZE		0x40000
 #endif
 
@@ -87,6 +87,14 @@
 #define CONFIG_HWCONFIG
 #define HWCONFIG_BUFFER_SIZE		128
 
+#include <config_distro_defaults.h>
+#ifndef CONFIG_SPL_BUILD
+#define BOOT_TARGET_DEVICES(func) \
+	func(MMC, mmc, 0) \
+	func(USB, usb, 0)
+#include <config_distro_bootcmd.h>
+#endif
+
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	"verify=no\0"				\
@@ -94,10 +102,11 @@
 	"kernel_addr=0x100000\0"		\
 	"fdt_high=0xffffffffffffffff\0"		\
 	"initrd_high=0xffffffffffffffff\0"	\
-	"kernel_start=0xa00000\0"		\
+	"kernel_start=0x1000000\0"		\
 	"kernel_load=0xa0000000\0"		\
 	"kernel_size=0x2800000\0"		\
 
+#undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND		"sf probe 0:0; sf read $kernel_load "\
 					"$kernel_start $kernel_size && "\
 					"bootm $kernel_load"
@@ -105,11 +114,9 @@
 /* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE		512	/* Console I/O Buffer Size */
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING		1
 #define CONFIG_AUTO_COMPLETE
 #define CONFIG_SYS_MAXARGS		64	/* max command args */
 
-#define CONFIG_PANIC_HANG
 #define CONFIG_SYS_BOOTM_LEN   (64 << 20)      /* Increase max gunzip size */
 
 #include <asm/arch/soc.h>

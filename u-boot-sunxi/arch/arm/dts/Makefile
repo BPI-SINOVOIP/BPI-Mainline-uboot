@@ -29,6 +29,7 @@ dtb-$(CONFIG_EXYNOS5) += exynos5250-arndale.dtb \
 dtb-$(CONFIG_EXYNOS7420) += exynos7420-espresso7420.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rk3036-sdk.dtb \
+	rk3128-evb.dtb \
 	rk3188-radxarock.dtb \
 	rk3288-evb.dtb \
 	rk3288-fennec.dtb \
@@ -54,7 +55,10 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rk3399-puma-ddr1866.dtb \
 	rv1108-evb.dtb
 dtb-$(CONFIG_ARCH_MESON) += \
-	meson-gxbb-odroidc2.dtb
+	meson-gxbb-odroidc2.dtb \
+	meson-gxl-s905x-p212.dtb \
+	meson-gxl-s905x-libretech-cc.dtb \
+	meson-gxl-s905x-khadas-vim.dtb
 dtb-$(CONFIG_TEGRA) += tegra20-harmony.dtb \
 	tegra20-medcom-wide.dtb \
 	tegra20-paz00.dtb \
@@ -123,24 +127,29 @@ dtb-$(CONFIG_ARCH_UNIPHIER_PXS3) += \
 dtb-$(CONFIG_ARCH_UNIPHIER_SLD8) += \
 	uniphier-sld8-ref.dtb
 
-dtb-$(CONFIG_ARCH_ZYNQ) += zynq-zc702.dtb \
-	zynq-zc706.dtb \
-	zynq-zed.dtb \
-	zynq-zybo.dtb \
+dtb-$(CONFIG_ARCH_ZYNQ) += \
+	zynq-cc108.dtb \
+	zynq-cse-qspi-single.dtb \
 	zynq-microzed.dtb \
 	zynq-picozed.dtb \
+	zynq-syzygy-hub.dtb \
 	zynq-topic-miami.dtb \
 	zynq-topic-miamilite.dtb \
 	zynq-topic-miamiplus.dtb \
-	zynq-zturn-myir.dtb \
+	zynq-zc702.dtb \
+	zynq-zc706.dtb \
 	zynq-zc770-xm010.dtb \
 	zynq-zc770-xm011.dtb \
 	zynq-zc770-xm012.dtb \
-	zynq-zc770-xm013.dtb
+	zynq-zc770-xm013.dtb \
+	zynq-zed.dtb \
+	zynq-zturn-myir.dtb \
+	zynq-zybo.dtb
 dtb-$(CONFIG_ARCH_ZYNQMP) += \
 	zynqmp-ep108.dtb			\
 	zynqmp-zcu102-revA.dtb			\
 	zynqmp-zcu102-revB.dtb			\
+	zynqmp-zcu102-rev1.0.dtb		\
 	zynqmp-zc1751-xm015-dc1.dtb		\
 	zynqmp-zc1751-xm016-dc2.dtb		\
 	zynqmp-zc1751-xm018-dc4.dtb		\
@@ -315,7 +324,8 @@ dtb-$(CONFIG_MACH_SUN8I_A33) += \
 dtb-$(CONFIG_MACH_SUN8I_A83T) += \
 	sun8i-a83t-allwinner-h8homlet-v2.dtb \
 	sun8i-a83t-bananapi-m3.dtb \
-	sun8i-a83t-cubietruck-plus.dtb
+	sun8i-a83t-cubietruck-plus.dtb \
+	sun8i-a83t-tbs-a711.dts
 dtb-$(CONFIG_MACH_SUN8I_H3) += \
 	sun8i-h2-plus-orangepi-zero.dtb \
 	sun8i-h2-plus-bananapi-m2-zero.dts \
@@ -338,6 +348,7 @@ dtb-$(CONFIG_MACH_SUN8I_V3S) += \
 	sun8i-v3s-licheepi-zero.dtb
 dtb-$(CONFIG_MACH_SUN50I_H5) += \
 	sun50i-h5-nanopi-neo2.dtb \
+	sun50i-h5-nanopi-neo-plus2.dtb \
 	sun50i-h5-orangepi-pc2.dtb \
 	sun50i-h5-orangepi-prime.dtb \
 	sun50i-h5-orangepi-zero-plus2.dtb
@@ -386,7 +397,9 @@ dtb-$(CONFIG_RCAR_GEN3) += \
 	r8a7795-h3ulcb.dtb \
 	r8a7795-salvator-x.dtb \
 	r8a7796-m3ulcb.dtb \
-	r8a7796-salvator-x.dtb
+	r8a7796-salvator-x.dtb \
+	r8a77970-eagle.dtb \
+	r8a77995-draak.dtb
 
 dtb-$(CONFIG_SOC_KEYSTONE) += keystone-k2hk-evm.dtb \
 	keystone-k2l-evm.dtb \
@@ -422,6 +435,13 @@ dtb-$(CONFIG_TARGET_AT91SAM9N12EK) += at91sam9n12ek.dtb
 dtb-$(CONFIG_TARGET_OMAP3_LOGIC) += \
 	logicpd-torpedo-37xx-devkit.dtb \
 	logicpd-som-lv-37xx-devkit.dtb
+
+dtb-$(CONFIG_TARGET_OMAP3_EVM) += \
+	omap3-evm-37xx.dtb \
+	omap3-evm.dtb
+
+dtb-$(CONFIG_TARGET_SAMA5D2_PTC_EK) += \
+	at91-sama5d2_ptc_ek.dtb
 
 dtb-$(CONFIG_TARGET_SAMA5D2_XPLAINED) += \
 	at91-sama5d2_xplained.dtb

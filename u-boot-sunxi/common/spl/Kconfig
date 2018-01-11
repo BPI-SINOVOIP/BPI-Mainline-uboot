@@ -228,6 +228,21 @@ config SPL_SHA256_SUPPORT
 	  SHA256 variant is supported: SHA512 and others are not currently
 	  supported in U-Boot.
 
+config SPL_FIT_IMAGE_TINY
+	bool "Remove functionality from SPL FIT loading to reduce size"
+	depends on SPL_FIT
+	default y if MACH_SUN50I || MACH_SUN50I_H5
+	help
+	  Enable this to reduce the size of the FIT image loading code
+	  in SPL, if space for the SPL binary is very tight.
+
+	  This removes the detection of image types (which forces the
+	  first image to be treated as having a U-Boot style calling
+	  convention) and skips the recording of each loaded payload
+	  (i.e. loadable) into the FDT (modifying the loaded FDT to
+	  ensure this information is available to the next image
+	  invoked).
+
 config SPL_CPU_SUPPORT
 	bool "Support CPU drivers"
 	help
@@ -605,6 +620,14 @@ config SPL_SPI_SUPPORT
 	  enable SPI drivers that are needed for other purposes also, such
 	  as a SPI PMIC.
 
+config SPL_THERMAL
+	bool "Driver support for thermal devices"
+	help
+	  Enable support for temperature-sensing devices. Some SoCs have on-chip
+	  temperature sensors to permit warnings, speed throttling or even
+	  automatic power-off when the temperature gets too high or low. Other
+	  devices may be discrete but connected on a suitable bus.
+
 config SPL_USB_HOST_SUPPORT
 	bool "Support USB host drivers"
 	help
@@ -694,19 +717,27 @@ config SPL_YMODEM_SUPPORT
 	  means of transmitting U-Boot over a serial line for using in SPL,
 	  with a checksum to ensure correctness.
 
-config SPL_ATF_SUPPORT
+config SPL_ATF
 	bool "Support ARM Trusted Firmware"
 	depends on ARM64
 	help
-	  ATF(ARM Trusted Firmware) is a component for ARM arch64 which
-	  is loaded by SPL(which is considered as BL2 in ATF terminology).
+	  ATF(ARM Trusted Firmware) is a component for ARM AArch64 which
+	  is loaded by SPL (which is considered as BL2 in ATF terminology).
 	  More detail at: https://github.com/ARM-software/arm-trusted-firmware
 
-config SPL_ATF_TEXT_BASE
-	depends on SPL_ATF_SUPPORT
-	hex "ATF BL31 base address"
+config SPL_ATF_NO_PLATFORM_PARAM
+        bool "Pass no platform parameter"
+	depends on SPL_ATF
 	help
-	  This is the base address in memory for ATF BL31 text and entry point.
+	  While we expect to call a pointer to a valid FDT (or NULL)
+	  as the platform parameter to an ATF, some ATF versions are
+	  not U-Boot aware and have an insufficiently robust parameter
+	  validation to gracefully reject a FDT being passed.
+
+	  If this option is enabled, the spl_atf os-type handler will
+	  always pass NULL for the platform parameter.
+
+	  If your ATF is affected, say Y.
 
 config TPL
 	bool

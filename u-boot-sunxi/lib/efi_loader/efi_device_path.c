@@ -36,6 +36,24 @@ static const struct efi_device_path_vendor ROOT = {
 	.guid = U_BOOT_GUID,
 };
 
+#if defined(CONFIG_DM_MMC) && defined(CONFIG_MMC)
+/*
+ * Determine if an MMC device is an SD card.
+ *
+ * @desc	block device descriptor
+ * @return	true if the device is an SD card
+ */
+static bool is_sd(struct blk_desc *desc)
+{
+	struct mmc *mmc = find_mmc_device(desc->devnum);
+
+	if (!mmc)
+		return false;
+
+	return IS_SD(mmc) != 0U;
+}
+#endif
+
 static void *dp_alloc(size_t sz)
 {
 	void *buf;
@@ -68,7 +86,8 @@ struct efi_device_path *efi_dp_next(const struct efi_device_path *dp)
  * representing a device with one representing a file on the device, or
  * a device with a parent device.
  */
-int efi_dp_match(struct efi_device_path *a, struct efi_device_path *b)
+int efi_dp_match(const struct efi_device_path *a,
+		 const struct efi_device_path *b)
 {
 	while (1) {
 		int ret;
@@ -125,34 +144,38 @@ static struct efi_object *find_obj(struct efi_device_path *dp, bool short_path,
 				   struct efi_device_path **rem)
 {
 	struct efi_object *efiobj;
+	unsigned int dp_size = efi_dp_size(dp);
 
 	list_for_each_entry(efiobj, &efi_obj_list, link) {
-		int i;
+		struct efi_handler *handler;
+		struct efi_device_path *obj_dp;
+		efi_status_t ret;
 
-		for (i = 0; i < ARRAY_SIZE(efiobj->protocols); i++) {
-			struct efi_handler *handler = &efiobj->protocols[i];
-			struct efi_device_path *obj_dp;
+		ret = efi_search_protocol(efiobj->handle,
+					  &efi_guid_device_path, &handler);
+		if (ret != EFI_SUCCESS)
+			continue;
+		obj_dp = handler->protocol_interface;
 
-			if (!handler->guid)
-				break;
-
-			if (guidcmp(handler->guid, &efi_guid_device_path))
-				continue;
-
-			obj_dp = handler->protocol_interface;
-
-			do {
-				if (efi_dp_match(dp, obj_dp) == 0) {
-					if (rem) {
-						*rem = ((void *)dp) +
-							efi_dp_size(obj_dp);
-					}
+		do {
+			if (efi_dp_match(dp, obj_dp) == 0) {
+				if (rem) {
+					/*
+					 * Allow partial matches, but inform
+					 * the caller.
+					 */
+					*rem = ((void *)dp) +
+						efi_dp_size(obj_dp);
 					return efiobj;
+				} else {
+					/* Only return on exact matches */
+					if (efi_dp_size(obj_dp) == dp_size)
+						return efiobj;
 				}
+			}
 
-				obj_dp = shorten_path(efi_dp_next(obj_dp));
-			} while (short_path && obj_dp);
-		}
+			obj_dp = shorten_path(efi_dp_next(obj_dp));
+		} while (short_path && obj_dp);
 	}
 
 	return NULL;
@@ -168,8 +191,14 @@ struct efi_object *efi_dp_find_obj(struct efi_device_path *dp,
 {
 	struct efi_object *efiobj;
 
-	efiobj = find_obj(dp, false, rem);
+	/* Search for an exact match first */
+	efiobj = find_obj(dp, false, NULL);
 
+	/* Then for a fuzzy match */
+	if (!efiobj)
+		efiobj = find_obj(dp, false, rem);
+
+	/* And now for a fuzzy short match */
 	if (!efiobj)
 		efiobj = find_obj(dp, true, rem);
 
@@ -302,9 +331,9 @@ static void *dp_fill(void *buf, struct udevice *dev)
 		struct blk_desc *desc = mmc_get_blk_desc(mmc);
 
 		sddp->dp.type     = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
-		sddp->dp.sub_type = (desc->if_type == IF_TYPE_MMC) ?
-			DEVICE_PATH_SUB_TYPE_MSG_MMC :
-			DEVICE_PATH_SUB_TYPE_MSG_SD;
+		sddp->dp.sub_type = is_sd(desc) ?
+			DEVICE_PATH_SUB_TYPE_MSG_SD :
+			DEVICE_PATH_SUB_TYPE_MSG_MMC;
 		sddp->dp.length   = sizeof(*sddp);
 		sddp->slot_number = dev->seq;
 
@@ -370,6 +399,13 @@ static unsigned dp_part_size(struct blk_desc *desc, int part)
 	return dpsize;
 }
 
+/*
+ * Create a device path for a block device or one of its partitions.
+ *
+ * @buf		buffer to which the device path is wirtten
+ * @desc	block device descriptor
+ * @part	partition number, 0 identifies a block device
+ */
 static void *dp_part_fill(void *buf, struct blk_desc *desc, int part)
 {
 	disk_partition_t info;
@@ -382,7 +418,7 @@ static void *dp_part_fill(void *buf, struct blk_desc *desc, int part)
 	 * and handling all the different cases like we do for non-
 	 * legacy (ie CONFIG_BLK=y) case.  But most important thing
 	 * is just to have a unique device-path for if_type+devnum.
-	 * So map things to a fictional USB device:
+	 * So map things to a fictitious USB device.
 	 */
 	struct efi_device_path_usb *udp;
 
@@ -406,7 +442,7 @@ static void *dp_part_fill(void *buf, struct blk_desc *desc, int part)
 	if (desc->part_type == PART_TYPE_ISO) {
 		struct efi_device_path_cdrom_path *cddp = buf;
 
-		cddp->boot_entry = part - 1;
+		cddp->boot_entry = part;
 		cddp->dp.type = DEVICE_PATH_TYPE_MEDIA_DEVICE;
 		cddp->dp.sub_type = DEVICE_PATH_SUB_TYPE_CDROM_PATH;
 		cddp->dp.length = sizeof(*cddp);
@@ -420,17 +456,34 @@ static void *dp_part_fill(void *buf, struct blk_desc *desc, int part)
 		hddp->dp.type = DEVICE_PATH_TYPE_MEDIA_DEVICE;
 		hddp->dp.sub_type = DEVICE_PATH_SUB_TYPE_HARD_DRIVE_PATH;
 		hddp->dp.length = sizeof(*hddp);
-		hddp->partition_number = part - 1;
+		hddp->partition_number = part;
 		hddp->partition_start = info.start;
 		hddp->partition_end = info.size;
 		if (desc->part_type == PART_TYPE_EFI)
 			hddp->partmap_type = 2;
 		else
 			hddp->partmap_type = 1;
-		hddp->signature_type = desc->sig_type;
-		if (hddp->signature_type != 0)
+
+		switch (desc->sig_type) {
+		case SIG_TYPE_NONE:
+		default:
+			hddp->signature_type = 0;
+			memset(hddp->partition_signature, 0,
+			       sizeof(hddp->partition_signature));
+			break;
+		case SIG_TYPE_MBR:
+			hddp->signature_type = 1;
+			memset(hddp->partition_signature, 0,
+			       sizeof(hddp->partition_signature));
+			memcpy(hddp->partition_signature, &desc->mbr_sig,
+			       sizeof(desc->mbr_sig));
+			break;
+		case SIG_TYPE_GUID:
+			hddp->signature_type = 2;
 			memcpy(hddp->partition_signature, &desc->guid_sig,
 			       sizeof(hddp->partition_signature));
+			break;
+		}
 
 		buf = &hddp[1];
 	}

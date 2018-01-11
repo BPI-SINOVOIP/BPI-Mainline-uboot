@@ -167,7 +167,8 @@ ifdef CONFIG_ARCH_ZYNQ
 MKIMAGEFLAGS_boot.bin = -T zynqimage -R $(srctree)/$(CONFIG_BOOT_INIT_FILE)
 endif
 ifdef CONFIG_ARCH_ZYNQMP
-MKIMAGEFLAGS_boot.bin = -T zynqmpimage -R $(srctree)/$(CONFIG_BOOT_INIT_FILE)
+MKIMAGEFLAGS_boot.bin = -T zynqmpimage -R $(srctree)/$(CONFIG_BOOT_INIT_FILE) \
+	-n $(srctree)/$(CONFIG_PMUFW_INIT_FILE)
 endif
 
 spl/boot.bin: $(obj)/u-boot-spl.bin FORCE
@@ -238,26 +239,10 @@ $(obj)/$(SPL_BIN)-pad.bin: $(obj)/$(SPL_BIN)
 	@bss_size_str=$(shell $(NM) $< | awk 'BEGIN {size = 0} /__bss_size/ {size = $$1} END {print "ibase=16; " toupper(size)}' | bc); \
 	dd if=/dev/zero of=$@ bs=1 count=$${bss_size_str} 2>/dev/null;
 
-# Pass the original device tree file through fdtgrep twice. The first pass
-# removes any unwanted nodes (i.e. those which don't have the
-# 'u-boot,dm-pre-reloc' property and thus are not needed by SPL. The second
-# pass removes various unused properties from the remaining nodes.
-# The output is typically a much smaller device tree file.
-ifeq ($(CONFIG_TPL_BUILD),y)
-fdtgrep_props := -b u-boot,dm-pre-reloc -b u-boot,dm-tpl
-else
-fdtgrep_props := -b u-boot,dm-pre-reloc -b u-boot,dm-spl
-endif
-quiet_cmd_fdtgrep = FDTGREP $@
-      cmd_fdtgrep = $(objtree)/tools/fdtgrep $(fdtgrep_props) -RT $< \
-		-n /chosen -n /config -O dtb | \
-	$(objtree)/tools/fdtgrep -r -O dtb - -o $@ \
-		$(addprefix -P ,$(subst $\",,$(CONFIG_OF_SPL_REMOVE_PROPS)))
+$(obj)/$(SPL_BIN).dtb: dts/dt-spl.dtb FORCE
+	$(call if_changed,copy)
 
-$(obj)/$(SPL_BIN).dtb: dts/dt.dtb $(objtree)/tools/fdtgrep FORCE
-	$(call if_changed,fdtgrep)
-
-pythonpath = PYTHONPATH=tools
+pythonpath = PYTHONPATH=scripts/dtc/pylibfdt
 
 quiet_cmd_dtocc = DTOC C  $@
 cmd_dtocc = $(pythonpath) $(srctree)/tools/dtoc/dtoc -d $(obj)/$(SPL_BIN).dtb -o $@ platdata
@@ -276,10 +261,10 @@ PHONY += dts_dir
 dts_dir:
 	$(shell [ -d $(obj)/dts ] || mkdir -p $(obj)/dts)
 
-include/generated/dt-structs-gen.h: $(obj)/$(SPL_BIN).dtb dts_dir checkdtoc
+include/generated/dt-structs-gen.h: $(obj)/$(SPL_BIN).dtb dts_dir FORCE
 	$(call if_changed,dtoch)
 
-$(obj)/dts/dt-platdata.c: $(obj)/$(SPL_BIN).dtb dts_dir checkdtoc
+$(obj)/dts/dt-platdata.c: $(obj)/$(SPL_BIN).dtb dts_dir FORCE
 	$(call if_changed,dtocc)
 
 ifdef CONFIG_SAMSUNG
@@ -379,17 +364,6 @@ ifneq ($(cmd_files),)
   $(cmd_files): ;	# Do not try to update included dependency files
   include $(cmd_files)
 endif
-
-checkdtoc: tools
-	@if ! ( echo 'import libfdt' | ( PYTHONPATH=tools $(PYTHON) )); then \
-		echo '*** dtoc needs the Python libfdt library. Either '; \
-		echo '*** install it on your system, or try:'; \
-		echo '***'; \
-		echo '*** sudo apt-get install swig libpython-dev'; \
-		echo '***'; \
-		echo '*** to have U-Boot build its own version.'; \
-		false; \
-	fi
 
 PHONY += FORCE
 FORCE:

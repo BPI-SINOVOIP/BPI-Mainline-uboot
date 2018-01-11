@@ -15,6 +15,7 @@
 enum {
 	IDCODE,
 	VERSION,
+	IDCODE2,
 };
 
 enum {
@@ -29,8 +30,7 @@ enum {
 	TCM_SPLIT,
 };
 
-int zynq_slcr_get_mio_pin_status(const char *periph);
-
+int zynq_board_read_rom_ethaddr(unsigned char *ethaddr);
 unsigned int zynqmp_get_silicon_version(void);
 
 void psu_init(void);

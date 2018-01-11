@@ -69,7 +69,6 @@
 
 #define CONFIG_SYS_MEMTEST_START 0x00010000	/* skip exception vectors */
 #define CONFIG_SYS_MEMTEST_END   0x1f000000	/* skip u-boot at top of RAM */
-#define CONFIG_PANIC_HANG	/* do not reset board on panic */
 
 /*
  * Config the L2 Cache as L2 SRAM
@@ -508,9 +507,6 @@
 #endif	/* CONFIG_PCI */
 
 /* SATA */
-#define CONFIG_LIBATA
-#define CONFIG_FSL_SATA
-
 #define CONFIG_SYS_SATA_MAX_DEVICE	2
 #define CONFIG_SATA1
 #define CONFIG_SYS_SATA1		CONFIG_SYS_MPC85xx_SATA1_ADDR

@@ -3,6 +3,7 @@ if ARCH_MX7
 config MX7
 	bool
 	select ROM_UNIFIED_SECTIONS
+	select SYSCOUNTER_TIMER
 	select CPU_V7_HAS_VIRT
 	select CPU_V7_HAS_NONSEC
 	select ARCH_SUPPORT_PSCI
@@ -10,6 +11,7 @@ config MX7
 	default y
 
 config MX7D
+	select HAS_CAAM
 	select ROM_UNIFIED_SECTIONS
 	imply CMD_FUSE
 	bool

@@ -200,6 +200,23 @@ config BOOTARGS
 	  CONFIG_BOOTARGS goes into the environment value "bootargs". Note that
 	  this value will also override the "chosen" node in FDT blob.
 
+config USE_BOOTCOMMAND
+	bool "Enable a default value for bootcmd"
+	help
+	  Provide a default value for the bootcmd entry in the environment.  If
+	  autoboot is enabled this is what will be run automatically.  Enable
+	  this option to be able to specify CONFIG_BOOTCOMMAND as a string.  If
+	  this option is disabled, CONFIG_BOOTCOMMAND will be undefined and
+	  won't take any space in U-Boot image.
+
+config BOOTCOMMAND
+	string "bootcmd value"
+	depends on USE_BOOTCOMMAND
+	default "run distro_bootcmd" if DISTRO_DEFAULTS
+	help
+	  This is the string of commands that will be used as bootcmd and if
+	  AUTOBOOT is set, automatically run.
+
 config BPI_CHIP
 	string "BPI_CHIP(a20/a31s/a83t/h3)"
 	default "a20"
@@ -430,6 +447,92 @@ config SYS_STDIO_DEREGISTER
 	  are never deactivated. But if a stdio device is used which can be
 	  removed (for example a USB keyboard) then this option can be
 	  enabled to ensure this is handled correctly.
+
+endmenu
+
+menu "Logging"
+
+config LOG
+	bool "Enable logging support"
+	help
+	  This enables support for logging of status and debug messages. These
+	  can be displayed on the console, recorded in a memory buffer, or
+	  discarded if not needed. Logging supports various categories and
+	  levels of severity.
+
+config SPL_LOG
+	bool "Enable logging support in SPL"
+	help
+	  This enables support for logging of status and debug messages. These
+	  can be displayed on the console, recorded in a memory buffer, or
+	  discarded if not needed. Logging supports various categories and
+	  levels of severity.
+
+config LOG_MAX_LEVEL
+	int "Maximum log level to record"
+	depends on LOG
+	default 5
+	help
+	  This selects the maximum log level that will be recorded. Any value
+	  higher than this will be ignored. If possible log statements below
+	  this level will be discarded at build time. Levels:
+
+	    0 - panic
+	    1 - critical
+	    2 - error
+	    3 - warning
+	    4 - note
+	    5 - info
+	    6 - detail
+	    7 - debug
+
+config SPL_LOG_MAX_LEVEL
+	int "Maximum log level to record in SPL"
+	depends on SPL_LOG
+	default 3
+	help
+	  This selects the maximum log level that will be recorded. Any value
+	  higher than this will be ignored. If possible log statements below
+	  this level will be discarded at build time. Levels:
+
+	    0 - panic
+	    1 - critical
+	    2 - error
+	    3 - warning
+	    4 - note
+	    5 - info
+	    6 - detail
+	    7 - debug
+
+config LOG_CONSOLE
+	bool "Allow log output to the console"
+	depends on LOG
+	default y
+	help
+	  Enables a log driver which writes log records to the console.
+	  Generally the console is the serial port or LCD display. Only the
+	  log message is shown - other details like level, category, file and
+	  line number are omitted.
+
+config LOG_SPL_CONSOLE
+	bool "Allow log output to the console in SPL"
+	depends on LOG_SPL
+	default y
+	help
+	  Enables a log driver which writes log records to the console.
+	  Generally the console is the serial port or LCD display. Only the
+	  log message is shown - other details like level, category, file and
+	  line number are omitted.
+
+config LOG_TEST
+	bool "Provide a test for logging"
+	depends on LOG
+	default y if SANDBOX
+	help
+	  This enables a 'log test' command to test logging. It is normally
+	  executed from a pytest and simply outputs logging information
+	  in various different ways to test that the logging system works
+	  correctly with varoius settings.
 
 endmenu
 

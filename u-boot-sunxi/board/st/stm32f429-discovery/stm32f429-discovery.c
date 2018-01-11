@@ -13,6 +13,7 @@
 
 #include <common.h>
 #include <dm.h>
+#include <stm32_rcc.h>
 #include <asm/io.h>
 #include <asm/armv7m.h>
 #include <asm/arch/stm32.h>
@@ -292,6 +293,8 @@ u32 get_board_rev(void)
 int board_early_init_f(void)
 {
 	int res;
+
+	configure_clocks();
 
 	res = uart_setup_gpio();
 	if (res)

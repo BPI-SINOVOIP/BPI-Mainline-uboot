@@ -82,15 +82,6 @@
 	func(PXE, pxe, na) \
 	func(DHCP, dhcp, na)
 
-#define CONFIG_BOOTCOMMAND \
-	"if test ${boot_fit} -eq 1; then "	\
-		"run update_to_fit;"	\
-	"fi;"	\
-	"run findfdt; " \
-	"run init_console; " \
-	"run envboot; " \
-	"run distro_bootcmd"
-
 #include <config_distro_bootcmd.h>
 
 #ifndef CONFIG_SPL_BUILD
@@ -264,7 +255,7 @@
 /* USB Device Firmware Update support */
 #ifndef CONFIG_SPL_BUILD
 #define DFUARGS \
-	"dfu_alt_info_emmc=rawemmc raw 0 3751936\0" \
+	DFU_ALT_INFO_EMMC \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_RAM \
 	DFU_ALT_INFO_NAND

@@ -7,7 +7,7 @@ T="$TOPDIR"
 BOARD="BPI-linux-4.14"
 K="$T/../BPI-Mainline-kernel/linux-4.14"
 kernel="4.14.12-BPI-Kernel"
-uboot="u-boot-2017.11"
+uboot="u-boot-2018.01"
 
 echo "top dir $T"
 

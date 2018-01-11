@@ -59,6 +59,20 @@ S:	Maintained
 T:	git git://git.denx.de/u-boot-arc.git
 F:	arch/arc/
 
+ARC HSDK CREG GPIO
+M:	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+S:	Maintained
+L:	uboot-snps-arc@synopsys.com
+F:	drivers/gpio/hsdk-creg-gpio.c
+
+ARC HSDK CGU CLOCK
+M:	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>
+S:	Maintained
+L:	uboot-snps-arc@synopsys.com
+F:	drivers/clk/clk-hsdk-cgu.c
+F:	include/dt-bindings/clock/snps,hsdk-cgu.h
+F:	doc/device-tree-bindings/clock/snps,hsdk-cgu.txt
+
 ARM
 M:	Albert Aribaud <albert.u.boot@aribaud.net>
 S:	Maintained
@@ -127,6 +141,7 @@ F:	arch/arm/include/asm/arch-pxa/
 
 ARM RENESAS RMOBILE/R-CAR
 M:	Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
+M:	Marek Vasut <marek.vasut+renesas@gmail.com>
 S:	Maintained
 T:	git git://git.denx.de/u-boot-sh.git
 F:	arch/arm/mach-rmobile/
@@ -136,8 +151,20 @@ M:	Simon Glass <sjg@chromium.org>
 M:	Philipp Tomsich <philipp.tomsich@theobroma-systems.com>
 S:	Maintained
 T:	git git://git.denx.de/u-boot-rockchip.git
+F:	arch/arm/include/asm/arch-rockchip/
 F:	arch/arm/mach-rockchip/
 F:	board/rockchip/
+F:	drivers/clk/rockchip/
+F:	drivers/gpio/rk_gpio.c
+F:	drivers/misc/rockchip-efuse.c
+F:	drivers/pinctrl/rockchip/
+F:	drivers/ram/rockchip/
+F:	drivers/sysreset/sysreset_rockchip.c
+F:	tools/rkcommon.c
+F:	tools/rkcommon.h
+F:	tools/rkimage.c
+F:	tools/rksd.c
+F:	tools/rkspi.c
 
 ARM SAMSUNG
 M:	Minkyu Kang <mk7.kang@samsung.com>
@@ -290,6 +317,15 @@ M:	Heiko Schocher <hs@denx.de>
 S:	Maintained
 T:	git git://git.denx.de/u-boot-i2c.git
 F:	drivers/i2c/
+
+LOGGING
+M:	Simon Glass <sjg@chromium.org>
+S:	Maintained
+T:	git git://git.denx.de/u-boot.git
+F:	common/log.c
+F:	cmd/log.c
+F:	test/log/log_test.c
+F:	test/py/tests/test_log.py
 
 MICROBLAZE
 M:	Michal Simek <monstr@monstr.eu>
@@ -445,6 +481,12 @@ M:	Marek Vasut <marex@denx.de>
 S:	Maintained
 T:	git git://git.denx.de/u-boot-usb.git
 F:	drivers/usb/
+
+USB xHCI
+M:	Bin Meng <bmeng.cn@gmail.com>
+S:	Maintained
+T:	git git://git.denx.de/u-boot-usb.git topic-xhci
+F:	drivers/usb/host/xhci*
 
 VIDEO
 M:	Anatolij Gustschin <agust@denx.de>

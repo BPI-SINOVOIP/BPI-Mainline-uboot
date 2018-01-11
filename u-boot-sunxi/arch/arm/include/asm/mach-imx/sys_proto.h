@@ -81,7 +81,8 @@ enum imx6_bmode {
 	IMX6_BMODE_ESD,
 	IMX6_BMODE_MMC,
 	IMX6_BMODE_EMMC,
-	IMX6_BMODE_NAND,
+	IMX6_BMODE_NAND_MIN,
+	IMX6_BMODE_NAND_MAX = 0xf,
 };
 
 static inline u8 imx6_is_bmode_from_gpr9(void)
@@ -105,9 +106,12 @@ void set_chipselect_size(int const);
 
 void init_aips(void);
 void init_src(void);
-void imx_set_wdog_powerdown(bool enable);
+void imx_wdog_disable_powerdown(void);
 
 int board_mmc_get_env_dev(int devno);
+
+int nxp_board_rev(void);
+char nxp_board_rev_string(void);
 
 /*
  * Initializes on-chip ethernet controllers.

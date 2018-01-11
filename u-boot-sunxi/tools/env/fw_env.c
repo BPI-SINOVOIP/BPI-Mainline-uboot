@@ -25,6 +25,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #ifdef MTD_OLD
 # include <stdint.h>
@@ -33,6 +34,8 @@
 # define  __user	/* nothing */
 # include <mtd/mtd-user.h>
 #endif
+
+#include <mtd/ubi-user.h>
 
 #include "fw_env_private.h"
 #include "fw_env.h"
@@ -58,6 +61,7 @@ struct envdev_s {
 	ulong erase_size;		/* device erase size */
 	ulong env_sectors;		/* number of environment sectors */
 	uint8_t mtd_type;		/* type of the MTD device */
+	int is_ubi;			/* set if we use UBI volume */
 };
 
 static struct envdev_s envdevices[2] =
@@ -76,6 +80,7 @@ static int dev_current;
 #define DEVESIZE(i)   envdevices[(i)].erase_size
 #define ENVSECTORS(i) envdevices[(i)].env_sectors
 #define DEVTYPE(i)    envdevices[(i)].mtd_type
+#define IS_UBI(i)     envdevices[(i)].is_ubi
 
 #define CUR_ENVSIZE ENVSIZE(dev_current)
 
@@ -111,8 +116,6 @@ static struct environment environment = {
 	.flag_scheme = FLAG_NONE,
 };
 
-static int env_aes_cbc_crypt(char *data, const int enc, uint8_t *key);
-
 static int HaveRedundEnv = 0;
 
 static unsigned char active_flag = 1;
@@ -121,6 +124,228 @@ static unsigned char obsolete_flag = 0;
 
 #define DEFAULT_ENV_INSTANCE_STATIC
 #include <env_default.h>
+
+#define UBI_DEV_START "/dev/ubi"
+#define UBI_SYSFS "/sys/class/ubi"
+#define UBI_VOL_NAME_PATT "ubi%d_%d"
+
+static int is_ubi_devname(const char *devname)
+{
+	return !strncmp(devname, UBI_DEV_START, sizeof(UBI_DEV_START) - 1);
+}
+
+static int ubi_check_volume_sysfs_name(const char *volume_sysfs_name,
+				       const char *volname)
+{
+	char path[256];
+	FILE *file;
+	char *name;
+	int ret;
+
+	strcpy(path, UBI_SYSFS "/");
+	strcat(path, volume_sysfs_name);
+	strcat(path, "/name");
+
+	file = fopen(path, "r");
+	if (!file)
+		return -1;
+
+	ret = fscanf(file, "%ms", &name);
+	fclose(file);
+	if (ret <= 0 || !name) {
+		fprintf(stderr,
+			"Failed to read from file %s, ret = %d, name = %s\n",
+			path, ret, name);
+		return -1;
+	}
+
+	if (!strcmp(name, volname)) {
+		free(name);
+		return 0;
+	}
+	free(name);
+
+	return -1;
+}
+
+static int ubi_get_volnum_by_name(int devnum, const char *volname)
+{
+	DIR *sysfs_ubi;
+	struct dirent *dirent;
+	int ret;
+	int tmp_devnum;
+	int volnum;
+
+	sysfs_ubi = opendir(UBI_SYSFS);
+	if (!sysfs_ubi)
+		return -1;
+
+#ifdef DEBUG
+	fprintf(stderr, "Looking for volume name \"%s\"\n", volname);
+#endif
+
+	while (1) {
+		dirent = readdir(sysfs_ubi);
+		if (!dirent)
+			return -1;
+
+		ret = sscanf(dirent->d_name, UBI_VOL_NAME_PATT,
+			     &tmp_devnum, &volnum);
+		if (ret == 2 && devnum == tmp_devnum) {
+			if (ubi_check_volume_sysfs_name(dirent->d_name,
+							volname) == 0)
+				return volnum;
+		}
+	}
+
+	return -1;
+}
+
+static int ubi_get_devnum_by_devname(const char *devname)
+{
+	int devnum;
+	int ret;
+
+	ret = sscanf(devname + sizeof(UBI_DEV_START) - 1, "%d", &devnum);
+	if (ret != 1)
+		return -1;
+
+	return devnum;
+}
+
+static const char *ubi_get_volume_devname(const char *devname,
+					  const char *volname)
+{
+	char *volume_devname;
+	int volnum;
+	int devnum;
+	int ret;
+
+	devnum = ubi_get_devnum_by_devname(devname);
+	if (devnum < 0)
+		return NULL;
+
+	volnum = ubi_get_volnum_by_name(devnum, volname);
+	if (volnum < 0)
+		return NULL;
+
+	ret = asprintf(&volume_devname, "%s_%d", devname, volnum);
+	if (ret < 0)
+		return NULL;
+
+#ifdef DEBUG
+	fprintf(stderr, "Found ubi volume \"%s:%s\" -> %s\n",
+		devname, volname, volume_devname);
+#endif
+
+	return volume_devname;
+}
+
+static void ubi_check_dev(unsigned int dev_id)
+{
+	char *devname = (char *)DEVNAME(dev_id);
+	char *pname;
+	const char *volname = NULL;
+	const char *volume_devname;
+
+	if (!is_ubi_devname(DEVNAME(dev_id)))
+		return;
+
+	IS_UBI(dev_id) = 1;
+
+	for (pname = devname; *pname != '\0'; pname++) {
+		if (*pname == ':') {
+			*pname = '\0';
+			volname = pname + 1;
+			break;
+		}
+	}
+
+	if (volname) {
+		/* Let's find real volume device name */
+		volume_devname = ubi_get_volume_devname(devname, volname);
+		if (!volume_devname) {
+			fprintf(stderr, "Didn't found ubi volume \"%s\"\n",
+				volname);
+			return;
+		}
+
+		free(devname);
+		DEVNAME(dev_id) = volume_devname;
+	}
+}
+
+static int ubi_update_start(int fd, int64_t bytes)
+{
+	if (ioctl(fd, UBI_IOCVOLUP, &bytes))
+		return -1;
+	return 0;
+}
+
+static int ubi_read(int fd, void *buf, size_t count)
+{
+	ssize_t ret;
+
+	while (count > 0) {
+		ret = read(fd, buf, count);
+		if (ret > 0) {
+			count -= ret;
+			buf += ret;
+
+			continue;
+		}
+
+		if (ret == 0) {
+			/*
+			 * Happens in case of too short volume data size. If we
+			 * return error status we will fail it will be treated
+			 * as UBI device error.
+			 *
+			 * Leave catching this error to CRC check.
+			 */
+			fprintf(stderr, "Warning: end of data on ubi volume\n");
+			return 0;
+		} else if (errno == EBADF) {
+			/*
+			 * Happens in case of corrupted volume. The same as
+			 * above, we cannot return error now, as we will still
+			 * be able to successfully write environment later.
+			 */
+			fprintf(stderr, "Warning: corrupted volume?\n");
+			return 0;
+		} else if (errno == EINTR) {
+			continue;
+		}
+
+		fprintf(stderr, "Cannot read %u bytes from ubi volume, %s\n",
+			(unsigned int)count, strerror(errno));
+		return -1;
+	}
+
+	return 0;
+}
+
+static int ubi_write(int fd, const void *buf, size_t count)
+{
+	ssize_t ret;
+
+	while (count > 0) {
+		ret = write(fd, buf, count);
+		if (ret <= 0) {
+			if (ret < 0 && errno == EINTR)
+				continue;
+
+			fprintf(stderr, "Cannot write %u bytes to ubi volume\n",
+				(unsigned int)count);
+			return -1;
+		}
+
+		count -= ret;
+		buf += ret;
+	}
+
+	return 0;
+}
 
 static int flash_io (int mode);
 static int parse_config(struct env_opts *opts);
@@ -217,34 +442,6 @@ char *fw_getdefenv(char *name)
 	return NULL;
 }
 
-int parse_aes_key(char *key, uint8_t *bin_key)
-{
-	char tmp[5] = { '0', 'x', 0, 0, 0 };
-	unsigned long ul;
-	int i;
-
-	if (strnlen(key, 64) != 32) {
-		fprintf(stderr,
-			"## Error: '-a' option requires 16-byte AES key\n");
-		return -1;
-	}
-
-	for (i = 0; i < 16; i++) {
-		tmp[2] = key[0];
-		tmp[3] = key[1];
-		errno = 0;
-		ul = strtoul(tmp, NULL, 16);
-		if (errno) {
-			fprintf(stderr,
-				"## Error: '-a' option requires valid AES key\n");
-			return -1;
-		}
-		bin_key[i] = ul & 0xff;
-		key += 2;
-	}
-	return 0;
-}
-
 /*
  * Print the current definition of one, or more, or all
  * environment variables
@@ -312,16 +509,6 @@ int fw_env_flush(struct env_opts *opts)
 
 	if (!opts)
 		opts = &default_opts;
-
-	if (opts->aes_flag) {
-		ret = env_aes_cbc_crypt(environment.data, 1,
-					opts->aes_key);
-		if (ret) {
-			fprintf(stderr,
-				"Error: can't encrypt env for flash\n");
-			return ret;
-		}
-	}
 
 	/*
 	 * Update CRC
@@ -976,28 +1163,6 @@ static int flash_flag_obsolete (int dev, int fd, off_t offset)
 	return rc;
 }
 
-/* Encrypt or decrypt the environment before writing or reading it. */
-static int env_aes_cbc_crypt(char *payload, const int enc, uint8_t *key)
-{
-	uint8_t *data = (uint8_t *)payload;
-	const int len = usable_envsize;
-	uint8_t key_exp[AES_EXPAND_KEY_LENGTH];
-	uint32_t aes_blocks;
-
-	/* First we expand the key. */
-	aes_expand_key(key, key_exp);
-
-	/* Calculate the number of AES blocks to encrypt. */
-	aes_blocks = DIV_ROUND_UP(len, AES_KEY_LENGTH);
-
-	if (enc)
-		aes_cbc_encrypt_blocks(key_exp, data, data, aes_blocks);
-	else
-		aes_cbc_decrypt_blocks(key_exp, data, data, aes_blocks);
-
-	return 0;
-}
-
 static int flash_write (int fd_current, int fd_target, int dev_target)
 {
 	int rc;
@@ -1022,6 +1187,12 @@ static int flash_write (int fd_current, int fd_target, int dev_target)
 		DEVOFFSET (dev_target), DEVNAME (dev_target));
 #endif
 
+	if (IS_UBI(dev_target)) {
+		if (ubi_update_start(fd_target, CUR_ENVSIZE) < 0)
+			return 0;
+		return ubi_write(fd_target, environment.image, CUR_ENVSIZE);
+	}
+
 	rc = flash_write_buf(dev_target, fd_target, environment.image,
 			     CUR_ENVSIZE);
 	if (rc < 0)
@@ -1045,6 +1216,12 @@ static int flash_write (int fd_current, int fd_target, int dev_target)
 static int flash_read (int fd)
 {
 	int rc;
+
+	if (IS_UBI(dev_current)) {
+		DEVTYPE(dev_current) = MTD_ABSENT;
+
+		return ubi_read(fd, environment.image, CUR_ENVSIZE);
+	}
 
 	rc = flash_read_buf(dev_current, fd, environment.image, CUR_ENVSIZE,
 			    DEVOFFSET(dev_current));
@@ -1182,13 +1359,6 @@ int fw_env_open(struct env_opts *opts)
 
 	crc0 = crc32 (0, (uint8_t *) environment.data, ENV_SIZE);
 
-	if (opts->aes_flag) {
-		ret = env_aes_cbc_crypt(environment.data, 0,
-					opts->aes_key);
-		if (ret)
-			goto open_cleanup;
-	}
-
 	crc0_ok = (crc0 == *environment.crc);
 	if (!HaveRedundEnv) {
 		if (!crc0_ok) {
@@ -1234,7 +1404,8 @@ int fw_env_open(struct env_opts *opts)
 			   DEVTYPE(!dev_current) == MTD_UBIVOLUME) {
 			environment.flag_scheme = FLAG_INCREMENTAL;
 		} else if (DEVTYPE(dev_current) == MTD_ABSENT &&
-			   DEVTYPE(!dev_current) == MTD_ABSENT) {
+			   DEVTYPE(!dev_current) == MTD_ABSENT &&
+			   IS_UBI(dev_current) == IS_UBI(!dev_current)) {
 			environment.flag_scheme = FLAG_INCREMENTAL;
 		} else {
 			fprintf (stderr, "Incompatible flash types!\n");
@@ -1243,13 +1414,6 @@ int fw_env_open(struct env_opts *opts)
 		}
 
 		crc1 = crc32 (0, (uint8_t *) redundant->data, ENV_SIZE);
-
-		if (opts->aes_flag) {
-			ret = env_aes_cbc_crypt(redundant->data, 0,
-						opts->aes_key);
-			if (ret)
-				goto open_cleanup;
-		}
 
 		crc1_ok = (crc1 == redundant->crc);
 		flag1 = redundant->flags;
@@ -1347,7 +1511,11 @@ int fw_env_close(struct env_opts *opts)
 static int check_device_config(int dev)
 {
 	struct stat st;
+	int32_t lnum = 0;
 	int fd, rc = 0;
+
+	/* Fills in IS_UBI(), converts DEVNAME() with ubi volume name */
+	ubi_check_dev(dev);
 
 	fd = open(DEVNAME(dev), O_RDONLY);
 	if (fd < 0) {
@@ -1364,7 +1532,14 @@ static int check_device_config(int dev)
 		goto err;
 	}
 
-	if (S_ISCHR(st.st_mode)) {
+	if (IS_UBI(dev)) {
+		rc = ioctl(fd, UBI_IOCEBISMAP, &lnum);
+		if (rc < 0) {
+			fprintf(stderr, "Cannot get UBI information for %s\n",
+				DEVNAME(dev));
+			goto err;
+		}
+	} else if (S_ISCHR(st.st_mode)) {
 		struct mtd_info_user mtdinfo;
 		rc = ioctl(fd, MEMGETINFO, &mtdinfo);
 		if (rc < 0) {
@@ -1497,9 +1672,6 @@ static int parse_config(struct env_opts *opts)
 	usable_envsize = CUR_ENVSIZE - sizeof(uint32_t);
 	if (HaveRedundEnv)
 		usable_envsize -= sizeof(char);
-
-	if (opts->aes_flag)
-		usable_envsize &= ~(AES_KEY_LENGTH - 1);
 
 	return 0;
 }

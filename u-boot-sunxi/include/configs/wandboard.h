@@ -26,12 +26,10 @@
 /* SATA Configs */
 
 #ifdef CONFIG_CMD_SATA
-#define CONFIG_DWC_AHSATA
 #define CONFIG_SYS_SATA_MAX_DEVICE	1
 #define CONFIG_DWC_AHSATA_PORT_ID	0
 #define CONFIG_DWC_AHSATA_BASE_ADDR	SATA_ARB_BASE_ADDR
 #define CONFIG_LBA48
-#define CONFIG_LIBATA
 #endif
 
 #define CONFIG_SYS_MEMTEST_START	0x10000000
@@ -139,11 +137,6 @@
 	func(USB, usb, 0) \
 	func(PXE, pxe, na) \
 	func(DHCP, dhcp, na)
-
-#define CONFIG_BOOTCOMMAND \
-	   "run findfdt; " \
-	   "run finduuid; " \
-	   "run distro_bootcmd"
 
 #include <config_distro_bootcmd.h>
 

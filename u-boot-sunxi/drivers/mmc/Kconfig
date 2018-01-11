@@ -33,6 +33,15 @@ config SPL_DM_MMC
 
 if MMC
 
+config ARM_PL180_MMCI
+	bool "ARM AMBA Multimedia Card Interface and compatible support"
+	depends on DM_MMC && OF_CONTROL
+	help
+	  This selects the ARM(R) AMBA(R) PrimeCell Multimedia Card
+	  Interface (PL180, PL181 and compatible) support.
+	  If you have an ARM(R) platform with a Multimedia Card slot,
+	  say Y or M here.
+
 config SPL_MMC_TINY
 	bool "Tiny MMC framework in SPL"
 	help
@@ -391,6 +400,18 @@ config STM32_SDMMC2
 	  This selects support for the SD/MMC controller on STM32H7 SoCs.
 	  If you have a board based on such a SoC and with a SD/MMC slot,
 	  say Y or M here.
+
+config MMC_NDS32
+	bool "Andestech SD/MMC controller support"
+	depends on DM_MMC && OF_CONTROL && BLK && FTSDC010
+	help
+	  This enables support for the Andestech SD/MMM controller, which is
+	  based on Faraday IP.
+
+config FTSDC010
+	bool "Ftsdc010 SD/MMC controller Support"
+	help
+	  This SD/MMC controller is present in Andestech SoCs which is based on Faraday IP.
 
 endif
 

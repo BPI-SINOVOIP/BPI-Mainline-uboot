@@ -492,8 +492,8 @@ static int ravb_probe(struct udevice *dev)
 	if (ret < 0)
 		goto err_mdio_alloc;
 
-	gpio_request_by_name_nodev(dev_ofnode(dev), "reset-gpios", 0,
-				   &eth->reset_gpio, GPIOD_IS_OUT);
+	gpio_request_by_name(dev, "reset-gpios", 0, &eth->reset_gpio,
+			     GPIOD_IS_OUT);
 
 	mdiodev = mdio_alloc();
 	if (!mdiodev) {
@@ -528,7 +528,8 @@ static int ravb_remove(struct udevice *dev)
 	free(eth->phydev);
 	mdio_unregister(eth->bus);
 	mdio_free(eth->bus);
-	dm_gpio_free(dev, &eth->reset_gpio);
+	if (dm_gpio_is_valid(&eth->reset_gpio))
+		dm_gpio_free(dev, &eth->reset_gpio);
 	unmap_physmem(eth->iobase, MAP_NOCACHE);
 
 	return 0;
@@ -651,6 +652,8 @@ int ravb_ofdata_to_platdata(struct udevice *dev)
 static const struct udevice_id ravb_ids[] = {
 	{ .compatible = "renesas,etheravb-r8a7795" },
 	{ .compatible = "renesas,etheravb-r8a7796" },
+	{ .compatible = "renesas,etheravb-r8a77970" },
+	{ .compatible = "renesas,etheravb-r8a77995" },
 	{ .compatible = "renesas,etheravb-rcar-gen3" },
 	{ }
 };

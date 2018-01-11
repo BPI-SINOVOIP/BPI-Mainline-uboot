@@ -9,6 +9,22 @@ config ARM64
 	select PHYS_64BIT
 	select SYS_CACHE_SHIFT_6
 
+if ARM64
+config POSITION_INDEPENDENT
+	bool "Generate position-independent pre-relocation code"
+	help
+	  U-Boot expects to be linked to a specific hard-coded address, and to
+	  be loaded to and run from that address. This option lifts that
+	  restriction, thus allowing the code to be loaded to and executed
+	  from almost any address. This logic relies on the relocation
+	  information that is embedded into the binary to support U-Boot
+	  relocating itself to the top-of-RAM later during execution.
+endif
+
+config STATIC_RELA
+	bool
+	default y if ARM64 && !POSITION_INDEPENDENT
+
 config DMA_ADDR_T_64BIT
 	bool
 	default y if ARM64
@@ -675,6 +691,7 @@ config ARCH_SOCFPGA
 
 config ARCH_SUNXI
 	bool "Support sunxi (Allwinner) SoCs"
+	select BINMAN
 	select CMD_GPIO
 	select CMD_MMC if MMC
 	select CMD_USB if DISTRO_DEFAULTS
@@ -721,7 +738,7 @@ config ARCH_VF610
 	imply NAND
 
 config ARCH_ZYNQ
-	bool "Xilinx Zynq Platform"
+	bool "Xilinx Zynq based platform"
 	select BOARD_LATE_INIT
 	select CPU_V7
 	select SUPPORT_SPL
@@ -747,7 +764,7 @@ config ARCH_ZYNQ
 	imply CMD_SPL
 
 config ARCH_ZYNQMP
-	bool "Support Xilinx ZynqMP Platform"
+	bool "Xilinx ZynqMP based platform"
 	select ARM64
 	select BOARD_LATE_INIT
 	select DM
@@ -756,7 +773,7 @@ config ARCH_ZYNQMP
 	select SUPPORT_SPL
 	select CLK
 	select SPL_BOARD_INIT if SPL
-	select SPL_CLK
+	select SPL_CLK if SPL
 	select DM_USB if USB
 	imply FAT_WRITE
 
@@ -817,6 +834,7 @@ config TARGET_LS1088AQDS
 	select ARMV8_MULTIENTRY
 	select ARCH_MISC_INIT
 	select BOARD_LATE_INIT
+	select SUPPORT_SPL
 	help
 	  Support for NXP LS1088AQDS platform
 	  The LS1088A Development System (QDS) is a high-performance
@@ -832,6 +850,7 @@ config TARGET_LS2080AQDS
 	select SUPPORT_SPL
 	select ARCH_MISC_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS2080AQDS platform
 	  The LS2080A Development System (QDS) is a high-performance
@@ -847,6 +866,7 @@ config TARGET_LS2080ARDB
 	select SUPPORT_SPL
 	select ARCH_MISC_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS2080ARDB platform.
 	  The LS2080A Reference design board (RDB) is a high-performance
@@ -908,6 +928,7 @@ config TARGET_LS1012ARDB
 	select ARM64
 	select BOARD_LATE_INIT
 	imply SCSI
+	imply SCSI_AHCI
 	help
 	  Support for Freescale LS1012ARDB platform.
 	  The LS1012A Reference design board (RDB) is a high-performance
@@ -931,6 +952,7 @@ config TARGET_LS1088ARDB
 	select ARMV8_MULTIENTRY
 	select ARCH_MISC_INIT
 	select BOARD_LATE_INIT
+	select SUPPORT_SPL
 	help
 	  Support for NXP LS1088ARDB platform.
 	  The LS1088A Reference design board (RDB) is a high-performance
@@ -1111,6 +1133,7 @@ config ARCH_ROCKCHIP
 	select DM_USB if USB
 	select DM_PWM
 	select DM_REGULATOR
+	select ENABLE_ARM_SOC_BOOT0_HOOK
 	imply CMD_FASTBOOT
 	imply FASTBOOT
 	imply FAT_WRITE

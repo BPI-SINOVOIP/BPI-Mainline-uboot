@@ -65,8 +65,6 @@
 
 /* SATA support */
 #define CONFIG_SYS_SATA_MAX_DEVICE	1
-#define CONFIG_SATA_MV
-#define CONFIG_LIBATA
 #define CONFIG_LBA48
 
 /* Additional FS support/configuration */

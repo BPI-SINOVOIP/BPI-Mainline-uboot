@@ -1,4 +1,5 @@
 #!/bin/bash
+U=u-boot-2018.01
 
 BOARD=$1
 if [ -z $BOARD ] ; then
@@ -8,7 +9,7 @@ fi
 
 echo ${BOARD}
 UBOOTBIN=out/${BOARD}/u-boot-sunxi-with-spl.bin
-UBOOTIMG=out/u-boot-2017.11-${BOARD}-8k.img
+UBOOTIMG=out/${U}-${BOARD}-8k.img
 if [ -f ${UBOOTBIN} ] ; then
 	cp -a ${UBOOTBIN} ${UBOOTIMG}
 else

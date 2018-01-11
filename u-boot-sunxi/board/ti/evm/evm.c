@@ -25,7 +25,7 @@
 #include <twl4030.h>
 #include <asm/mach-types.h>
 #include <asm/omap_musb.h>
-#include <linux/mtd/nand.h>
+#include <linux/mtd/rawnand.h>
 #include <linux/usb/ch9.h>
 #include <linux/usb/gadget.h>
 #include <linux/usb/musb.h>
@@ -299,26 +299,12 @@ static void reset_net_chip(void)
 
 int board_eth_init(bd_t *bis)
 {
-	int rc = 0;
 #if defined(CONFIG_SMC911X)
-#define STR_ENV_ETHADDR	"ethaddr"
-
-	struct eth_device *dev;
-	uchar eth_addr[6];
-
-	rc = smc911x_initialize(0, CONFIG_SMC911X_BASE);
-
-	if (!eth_env_get_enetaddr(STR_ENV_ETHADDR, eth_addr)) {
-		dev = eth_get_dev_by_index(0);
-		if (dev) {
-			eth_env_set_enetaddr(STR_ENV_ETHADDR, dev->enetaddr);
-		} else {
-			printf("omap3evm: Couldn't get eth device\n");
-			rc = -1;
-		}
-	}
-#endif /* CONFIG_SMC911X */
-	return rc;
+	env_set("ethaddr", NULL);
+	return smc911x_initialize(0, CONFIG_SMC911X_BASE);
+#else
+	return 0;
+#endif
 }
 #endif /* CONFIG_CMD_NET */
 

@@ -29,6 +29,7 @@
 #include <fsl_ddr.h>
 #endif
 #include <asm/arch/clock.h>
+#include <hwconfig.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -494,6 +495,41 @@ static inline int check_psci(void)
 	return 0;
 }
 
+static void config_core_prefetch(void)
+{
+	char *buf = NULL;
+	char buffer[HWCONFIG_BUFFER_SIZE];
+	const char *prefetch_arg = NULL;
+	size_t arglen;
+	unsigned int mask;
+	struct pt_regs regs;
+
+	if (env_get_f("hwconfig", buffer, sizeof(buffer)) > 0)
+		buf = buffer;
+
+	prefetch_arg = hwconfig_subarg_f("core_prefetch", "disable",
+					 &arglen, buf);
+
+	if (prefetch_arg) {
+		mask = simple_strtoul(prefetch_arg, NULL, 0) & 0xff;
+		if (mask & 0x1) {
+			printf("Core0 prefetch can't be disabled\n");
+			return;
+		}
+
+#define SIP_PREFETCH_DISABLE_64 0xC200FF13
+		regs.regs[0] = SIP_PREFETCH_DISABLE_64;
+		regs.regs[1] = mask;
+		smc_call(&regs);
+
+		if (regs.regs[0])
+			printf("Prefetch disable config failed for mask ");
+		else
+			printf("Prefetch disable config passed for mask ");
+		printf("0x%x\n", mask);
+	}
+}
+
 int arch_early_init_r(void)
 {
 #ifdef CONFIG_SYS_FSL_ERRATUM_A009635
@@ -502,8 +538,8 @@ int arch_early_init_r(void)
 	 * erratum A009635 is valid only for LS2080A SoC and
 	 * its personalitiesi
 	 */
-	svr_dev_id = get_svr() >> 16;
-	if (svr_dev_id == SVR_DEV_LS2080A)
+	svr_dev_id = get_svr();
+	if (IS_SVR_DEV(svr_dev_id, SVR_DEV(SVR_LS2080A)))
 		erratum_a009635();
 #endif
 #if defined(CONFIG_SYS_FSL_ERRATUM_A009942) && defined(CONFIG_SYS_FSL_DDR)
@@ -520,6 +556,8 @@ int arch_early_init_r(void)
 #ifdef CONFIG_SYS_FSL_HAS_RGMII
 	fsl_rgmii_init();
 #endif
+
+	config_core_prefetch();
 
 #ifdef CONFIG_SYS_HAS_SERDES
 	fsl_serdes_init();
@@ -566,8 +604,8 @@ int timer_init(void)
 	 * For LS2080A SoC and its personalities, timer controller
 	 * offset is different
 	 */
-	svr_dev_id = get_svr() >> 16;
-	if (svr_dev_id == SVR_DEV_LS2080A)
+	svr_dev_id = get_svr();
+	if (IS_SVR_DEV(svr_dev_id, SVR_DEV(SVR_LS2080A)))
 		cntcr = (u32 *)SYS_FSL_LS2080A_LS2085A_TIMER_ADDR;
 
 #endif

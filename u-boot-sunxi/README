@@ -1603,6 +1603,15 @@ The following options need to be configured:
 
 		See doc/README.link-local for more information.
 
+ - MAC address from environment variables
+
+		FDT_SEQ_MACADDR_FROM_ENV
+
+		Fix-up device tree with MAC addresses fetched sequentially from
+		environment variables. This config work on assumption that
+		non-usable ethernet node of device-tree are either not present
+		or their status has been marked as "disabled".
+
  - CDP Options:
 		CONFIG_CDP_DEVICE_ID
 
@@ -2168,16 +2177,6 @@ The following options need to be configured:
 		currently only supports clearing the memory.
 
 - Error Recovery:
-		CONFIG_PANIC_HANG
-
-		Define this variable to stop the system in case of a
-		fatal error, so that you have to reset it manually.
-		This is probably NOT a good idea for an embedded
-		system where you want the system to reboot
-		automatically as fast as possible, but it may be
-		useful during development since you can try to debug
-		the conditions that lead to the situation.
-
 		CONFIG_NET_RETRY_COUNT
 
 		This variable defines the number of retries for
@@ -2362,6 +2361,13 @@ The following options need to be configured:
 			CONFIG_SYS_BOOTCOUNT_ADDR = i2c addr which is used for
 						    the bootcounter.
 			CONFIG_BOOTCOUNT_ALEN = address len
+		CONFIG_BOOTCOUNT_EXT
+		enable support for the bootcounter in EXT filesystem
+			CONFIG_SYS_BOOTCOUNT_ADDR = RAM address used for read
+                                                    and write.
+			CONFIG_SYS_BOOTCOUNT_EXT_INTERFACE = interface
+			CONFIG_SYS_BOOTCOUNT_EXT_DEVPART = device and part
+			CONFIG_SYS_BOOTCOUNT_EXT_NAME = filename
 
 - Show boot progress:
 		CONFIG_SHOW_BOOT_PROGRESS
@@ -5119,8 +5125,9 @@ Coding Standards:
 -----------------
 
 All contributions to U-Boot should conform to the Linux kernel
-coding style; see the file "Documentation/CodingStyle" and the script
-"scripts/Lindent" in your Linux kernel source directory.
+coding style; see the kernel coding style guide at
+https://www.kernel.org/doc/html/latest/process/coding-style.html, and the
+script "scripts/Lindent" in your Linux kernel source directory.
 
 Source files originating from a different project (for example the
 MTD subsystem) are generally exempt from these guidelines and are not
@@ -5152,7 +5159,7 @@ may be rejected, even when they contain important and valuable stuff.
 Please see http://www.denx.de/wiki/U-Boot/Patches for details.
 
 Patches shall be sent to the u-boot mailing list <u-boot@lists.denx.de>;
-see http://lists.denx.de/mailman/listinfo/u-boot
+see https://lists.denx.de/listinfo/u-boot
 
 When you send a patch, please include the following information with
 it:

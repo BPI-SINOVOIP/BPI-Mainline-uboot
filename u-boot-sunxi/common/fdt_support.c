@@ -410,6 +410,45 @@ static int fdt_pack_reg(const void *fdt, void *buf, u64 *address, u64 *size,
 	return p - (char *)buf;
 }
 
+int fdt_record_loadable(void *blob, u32 index, const char *name,
+			uintptr_t load_addr, u32 size, uintptr_t entry_point,
+			const char *type, const char *os)
+{
+	int err, node;
+
+	err = fdt_check_header(blob);
+	if (err < 0) {
+		printf("%s: %s\n", __func__, fdt_strerror(err));
+		return err;
+	}
+
+	/* find or create "/fit-images" node */
+	node = fdt_find_or_add_subnode(blob, 0, "fit-images");
+	if (node < 0)
+			return node;
+
+	/* find or create "/fit-images/<name>" node */
+	node = fdt_find_or_add_subnode(blob, node, name);
+	if (node < 0)
+		return node;
+
+	/*
+	 * We record these as 32bit entities, possibly truncating addresses.
+	 * However, spl_fit.c is not 64bit safe either: i.e. we should not
+	 * have an issue here.
+	 */
+	fdt_setprop_u32(blob, node, "load-addr", load_addr);
+	if (entry_point != -1)
+		fdt_setprop_u32(blob, node, "entry-point", entry_point);
+	fdt_setprop_u32(blob, node, "size", size);
+	if (type)
+		fdt_setprop_string(blob, node, "type", type);
+	if (os)
+		fdt_setprop_string(blob, node, "os", os);
+
+	return node;
+}
+
 #ifdef CONFIG_NR_DRAM_BANKS
 #define MEMORY_BANKS_MAX CONFIG_NR_DRAM_BANKS
 #else
@@ -469,12 +508,16 @@ int fdt_fixup_memory(void *blob, u64 start, u64 size)
 
 void fdt_fixup_ethernet(void *fdt)
 {
-	int i, j, prop;
+	int i = 0, j, prop;
 	char *tmp, *end;
 	char mac[16];
 	const char *path;
 	unsigned char mac_addr[ARP_HLEN];
 	int offset;
+#ifdef FDT_SEQ_MACADDR_FROM_ENV
+	int nodeoff;
+	const struct fdt_property *fdt_prop;
+#endif
 
 	if (fdt_path_offset(fdt, "/aliases") < 0)
 		return;
@@ -487,7 +530,7 @@ void fdt_fixup_ethernet(void *fdt)
 		offset = fdt_first_property_offset(fdt,
 			fdt_path_offset(fdt, "/aliases"));
 		/* Select property number 'prop' */
-		for (i = 0; i < prop; i++)
+		for (j = 0; j < prop; j++)
 			offset = fdt_next_property_offset(fdt, offset);
 
 		if (offset < 0)
@@ -496,11 +539,16 @@ void fdt_fixup_ethernet(void *fdt)
 		path = fdt_getprop_by_offset(fdt, offset, &name, NULL);
 		if (!strncmp(name, "ethernet", 8)) {
 			/* Treat plain "ethernet" same as "ethernet0". */
-			if (!strcmp(name, "ethernet"))
+			if (!strcmp(name, "ethernet")
+#ifdef FDT_SEQ_MACADDR_FROM_ENV
+			 || !strcmp(name, "ethernet0")
+#endif
+			)
 				i = 0;
+#ifndef FDT_SEQ_MACADDR_FROM_ENV
 			else
 				i = trailing_strtol(name);
-
+#endif
 			if (i != -1) {
 				if (i == 0)
 					strcpy(mac, "ethaddr");
@@ -509,6 +557,14 @@ void fdt_fixup_ethernet(void *fdt)
 			} else {
 				continue;
 			}
+#ifdef FDT_SEQ_MACADDR_FROM_ENV
+			nodeoff = fdt_path_offset(fdt, path);
+			fdt_prop = fdt_get_property(fdt, nodeoff, "status",
+						    NULL);
+			if (fdt_prop && !strcmp(fdt_prop->data, "disabled"))
+				continue;
+			i++;
+#endif
 			tmp = env_get(mac);
 			if (!tmp)
 				continue;

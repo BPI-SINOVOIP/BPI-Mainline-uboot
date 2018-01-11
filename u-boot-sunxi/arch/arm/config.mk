@@ -68,8 +68,8 @@ endif
 checkgcc6:
 	@if test "$(call cc-name)" = "gcc" -a \
 			"$(call cc-version)" -lt "0600"; then \
-		echo -n '*** Your GCC is older than 6.0 and will not be '; \
-		echo 'supported starting in v2018.01.'; \
+		echo '*** Your GCC is older than 6.0 and is not supported'; \
+		false; \
 	fi
 
 
@@ -136,10 +136,12 @@ endif
 # limit ourselves to the sections we want in the .bin.
 ifdef CONFIG_ARM64
 OBJCOPYFLAGS += -j .text -j .secure_text -j .secure_data -j .rodata -j .data \
-		-j .u_boot_list -j .rela.dyn -j .got -j .got.plt
+		-j .u_boot_list -j .rela.dyn -j .got -j .got.plt \
+		-j .binman_sym_table
 else
 OBJCOPYFLAGS += -j .text -j .secure_text -j .secure_data -j .rodata -j .hash \
-		-j .data -j .got -j .got.plt -j .u_boot_list -j .rel.dyn
+		-j .data -j .got -j .got.plt -j .u_boot_list -j .rel.dyn \
+		-j .binman_sym_table
 endif
 
 # if a dtb section exists we always have to include it

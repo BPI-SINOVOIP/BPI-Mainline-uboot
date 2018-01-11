@@ -18,6 +18,7 @@
 #include <environment.h>
 #include <asm/arch-fsl-layerscape/soc.h>
 #include <asm/arch/ppa.h>
+#include <hwconfig.h>
 
 #include "../common/qixis.h"
 #include "ls1088a_qixis.h"
@@ -296,6 +297,23 @@ void board_retimer_init(void)
 	select_i2c_ch_pca9547(I2C_MUX_CH_DEFAULT);
 }
 
+#ifdef CONFIG_MISC_INIT_R
+int misc_init_r(void)
+{
+#ifdef CONFIG_TARGET_LS1088ARDB
+	u8 brdcfg5;
+
+	if (hwconfig("esdhc-force-sd")) {
+		brdcfg5 = QIXIS_READ(brdcfg[5]);
+		brdcfg5 &= ~BRDCFG5_SPISDHC_MASK;
+		brdcfg5 |= BRDCFG5_FORCE_SD;
+		QIXIS_WRITE(brdcfg[5], brdcfg5);
+	}
+#endif
+	return 0;
+}
+#endif
+
 int board_init(void)
 {
 	init_final_memctl_regs();
@@ -315,6 +333,9 @@ int board_init(void)
 	out_le32(irq_ccsr + IRQCR_OFFSET / 4, AQR105_IRQ_MASK);
 #endif
 
+#ifdef CONFIG_FSL_CAAM
+	sec_init();
+#endif
 #ifdef CONFIG_FSL_LS_PPA
 	ppa_init();
 #endif
@@ -337,9 +358,6 @@ void detail_board_ddr_info(void)
 #if defined(CONFIG_ARCH_MISC_INIT)
 int arch_misc_init(void)
 {
-#ifdef CONFIG_FSL_CAAM
-	sec_init();
-#endif
 	return 0;
 }
 #endif
@@ -360,7 +378,7 @@ void fdt_fixup_board_enet(void *fdt)
 		return;
 	}
 
-	if (get_mc_boot_status() == 0)
+	if ((get_mc_boot_status() == 0) && (get_dpl_apply_status() == 0))
 		fdt_status_okay(fdt, offset);
 	else
 		fdt_status_fail(fdt, offset);
@@ -368,6 +386,33 @@ void fdt_fixup_board_enet(void *fdt)
 #endif
 
 #ifdef CONFIG_OF_BOARD_SETUP
+void fsl_fdt_fixup_flash(void *fdt)
+{
+	int offset;
+
+/*
+ * IFC-NOR and QSPI are muxed on SoC.
+ * So disable IFC node in dts if QSPI is enabled or
+ * disable QSPI node in dts in case QSPI is not enabled.
+ */
+
+#ifdef CONFIG_FSL_QSPI
+	offset = fdt_path_offset(fdt, "/soc/ifc/nor");
+
+	if (offset < 0)
+		offset = fdt_path_offset(fdt, "/ifc/nor");
+#else
+	offset = fdt_path_offset(fdt, "/soc/quadspi");
+
+	if (offset < 0)
+		offset = fdt_path_offset(fdt, "/quadspi");
+#endif
+	if (offset < 0)
+		return;
+
+	fdt_status_disabled(fdt, offset);
+}
+
 int ft_board_setup(void *blob, bd_t *bd)
 {
 	int err, i;
@@ -393,6 +438,8 @@ int ft_board_setup(void *blob, bd_t *bd)
 #endif
 
 	fdt_fixup_memory_banks(blob, base, size, CONFIG_NR_DRAM_BANKS);
+
+	fsl_fdt_fixup_flash(blob);
 
 #ifdef CONFIG_FSL_MC_ENET
 	fdt_fixup_board_enet(blob);
