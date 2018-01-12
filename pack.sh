@@ -4,7 +4,7 @@
 
 TOPDIR=`pwd`
 T="$TOPDIR"
-BOARD="BPI-linux-4.14"
+BOARD="bpi-all"
 K="$T/../BPI-Mainline-kernel/linux-4.14"
 kernel="4.14.12-BPI-Kernel"
 uboot="u-boot-2018.01"
@@ -55,7 +55,7 @@ R="${SD}/BPI-ROOT"
 	## create files for bpi-tools & bpi-migrate
 	#
 	# BPI-BOOT
-	(cd $B ; tar czvf $SD/BPI-BOOT-${BOARD}.tgz .)
+	(cd $B ; tar czvf $SD/BPI-BOOT-${BOARD}-linux4.tgz .)
 	# BPI-ROOT: kernel modules
 	#(cd $R ; tar czvf $SD/${kernel}.tgz lib/modules)
 	(cd $R ; tar czvf $SD/${kernel}-net.tgz lib/modules/${kernel}/kernel/net)
@@ -63,7 +63,7 @@ R="${SD}/BPI-ROOT"
 	(cd $R ; tar czvf $SD/${kernel}.tgz lib/modules)
 	(cd $R ; mv $R/net lib/modules/${kernel}/kernel/net)
 	# BPI-ROOT: BOOTLOADER
-	(cd $R ; tar czvf $SD/BOOTLOADER-${BOARD}.tgz usr/lib/u-boot/bananapi)
+	(cd $R ; tar czvf $SD/BOOTLOADER-${BOARD}-linux4.tgz usr/lib/u-boot/bananapi)
 
 
 	return #SKIP
