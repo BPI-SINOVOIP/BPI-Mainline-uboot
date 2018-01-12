@@ -8,6 +8,7 @@ BOARD="BPI-linux-4.14"
 K="$T/../BPI-Mainline-kernel/linux-4.14"
 kernel="4.14.12-BPI-Kernel"
 uboot="u-boot-2018.01"
+EXTLINUX=bananapi/bpi-all/linux4/
 
 echo "top dir $T"
 
@@ -36,11 +37,11 @@ R="${SD}/BPI-ROOT"
 	#
 	## copy files to BPI-BOOT
 	#
-	mkdir -p $B/extlinux/dtb/overlay
-	cp -a $T/extlinux/* $B/extlinux
-	cp -a $K/output/bpi/arch/arm/boot/zImage $B/extlinux/zImage
-	cp -a $K/output/bpi/arch/arm/boot/dts/* $B/extlinux/dtb
-	cp -a $K/output/bpi/arch/arm/boot/dts/overlay $B/extlinux/dtb/overlay
+	mkdir -p $B/$EXTLINUX/extlinux/dtb
+	cp -a $T/extlinux/* $B/$EXTLINUX/extlinux
+	cp -a $K/output/bpi/arch/arm/boot/zImage $B/$EXTLINUX/extlinux/zImage
+	cp -a $K/output/bpi/arch/arm/boot/dts/* $B/$EXTLINUX/extlinux/dtb
+	rm -f $B/$EXTLINUX/extlinux/dtb/overlay/.sun*
 
 	#
 	## copy files to BPI-ROOT

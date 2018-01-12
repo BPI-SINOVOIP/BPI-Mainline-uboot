@@ -236,10 +236,10 @@ config BPI_SERVICE
 	BPI_SERVICE(linux/openelec)
 
 config BPI_PATH
-	string "BPI_PATH(bananapi/board/service/)"
-	default "bananapi/bpi-m1/linux/"
+	string "BPI_PATH(/bananapi/board/service/)"
+	default "/bananapi/bpi-all/linux4/"
 	---help---
-	BPI_PATH(bananapi/board/service/)
+	BPI_PATH(/bananapi/board/service/)
 
 config BPI_UENVFILE
 	string "BPI_UENVFILE(bananapi/board/service/uEnv.txt)"

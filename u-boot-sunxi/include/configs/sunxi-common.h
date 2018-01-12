@@ -19,7 +19,7 @@
 #ifdef BPI
 #else
 #undef CONFIG_SYS_PROMPT
-#define	CONFIG_SYS_PROMPT "IoT> "
+#define	CONFIG_SYS_PROMPT "BPI-IoT> "
 #endif
 
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
