@@ -4,11 +4,11 @@
 
 TOPDIR=`pwd`
 T="$TOPDIR"
-BOARD="bpi-all"
-ARCH=arm
-KERNEL=zImage
+BOARD="bpi-64"
+ARCH=arm64
+KERNEL=Image
 K="$T/../BPI-Mainline-kernel/linux-4.14"
-kernel="4.14.12-BPI-Kernel"
+kernel="4.14.12-BPI-64-Kernel"
 uboot="u-boot-2018.01"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
