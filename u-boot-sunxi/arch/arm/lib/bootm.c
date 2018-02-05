@@ -103,7 +103,7 @@ static void announce_and_cleanup(int fake)
 
 	/* bpi, avoid splash screen */
 #ifdef CONFIG_VIDEO_DE2
-	sunxi_dw_hdmi_disable();
+//	sunxi_dw_hdmi_disable();
 #endif
 
 	cleanup_before_linux();
