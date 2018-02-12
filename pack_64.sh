@@ -42,8 +42,9 @@ R="${SD}/BPI-ROOT"
 	mkdir -p $B/$EXTLINUX/extlinux/dtb
 	cp -a $T/extlinux/${BOARD}/* $B/$EXTLINUX/extlinux
 	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/${KERNEL} $B/$EXTLINUX/extlinux/${KERNEL}
-	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/dts/* $B/$EXTLINUX/extlinux/dtb
-	rm -f $B/$EXTLINUX/extlinux/dtb/overlay/.sun*
+	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/dts/allwinner $B/$EXTLINUX/extlinux/dtb/allwinner
+	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/.sun*
+	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/overlay/.sun*
 
 	#
 	## copy files to BPI-ROOT
