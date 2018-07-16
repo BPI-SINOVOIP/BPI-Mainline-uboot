@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2013
  *
  * Written by Guilherme Maciel Ferreira <guilherme.maciel.ferreira@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _IMAGETOOL_H_
@@ -12,6 +11,7 @@
 #include "os_support.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -231,6 +231,7 @@ time_t imagetool_get_source_date(
 
 
 void pbl_load_uboot(int fd, struct image_tool_params *mparams);
+int zynqmpbif_copy_image(int fd, struct image_tool_params *mparams);
 
 #define ___cat(a, b) a ## b
 #define __cat(a, b) ___cat(a, b)

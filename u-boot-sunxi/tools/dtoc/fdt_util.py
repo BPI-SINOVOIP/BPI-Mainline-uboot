@@ -1,9 +1,8 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0+
 #
 # Copyright (C) 2016 Google, Inc
 # Written by Simon Glass <sjg@chromium.org>
-#
-# SPDX-License-Identifier:      GPL-2.0+
 #
 
 import os
@@ -79,7 +78,8 @@ def EnsureCompiled(fname):
             '-W', 'no-unit_address_vs_reg']
     args.extend(search_list)
     args.append(dts_input)
-    command.Run('dtc', *args)
+    dtc = os.environ.get('DTC') or 'dtc'
+    command.Run(dtc, *args)
     return dtb_output
 
 def GetInt(node, propname, default=None):

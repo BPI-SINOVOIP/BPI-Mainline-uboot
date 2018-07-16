@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2015-2016 Freescale Semiconductor, Inc.
  * Copyright 2017 NXP
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <config.h>
@@ -24,7 +23,8 @@ psci_cpu_on:
 	mov	r5, r1
 	mov	r0, r1
 	mov	r1, r2
-	bl	psci_save_target_pc
+	mov	r2, r3
+	bl	psci_save
 
 	mov	r0, r4
 	mov	r1, r5
@@ -42,5 +42,19 @@ psci_cpu_off:
 
 1: 	wfi
 	b 1b
+
+.globl psci_system_reset
+psci_system_reset:
+	bl	imx_system_reset
+
+2: 	wfi
+	b 2b
+
+.globl psci_system_off
+psci_system_off:
+	bl	imx_system_off
+
+3: 	wfi
+	b 3b
 
 	.popsection

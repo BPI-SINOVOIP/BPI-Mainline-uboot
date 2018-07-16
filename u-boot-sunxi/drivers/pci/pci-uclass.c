@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2014 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -811,19 +810,21 @@ error:
 	return ret;
 }
 
-static int decode_regions(struct pci_controller *hose, ofnode parent_node,
-			  ofnode node)
+static void decode_regions(struct pci_controller *hose, ofnode parent_node,
+			   ofnode node)
 {
 	int pci_addr_cells, addr_cells, size_cells;
-	phys_addr_t base = 0, size;
 	int cells_per_record;
 	const u32 *prop;
 	int len;
 	int i;
 
 	prop = ofnode_get_property(node, "ranges", &len);
-	if (!prop)
-		return -EINVAL;
+	if (!prop) {
+		debug("%s: Cannot decode regions\n", __func__);
+		return;
+	}
+
 	pci_addr_cells = ofnode_read_simple_addr_cells(node);
 	addr_cells = ofnode_read_simple_addr_cells(parent_node);
 	size_cells = ofnode_read_simple_size_cells(node);
@@ -862,6 +863,13 @@ static int decode_regions(struct pci_controller *hose, ofnode parent_node,
 		} else {
 			continue;
 		}
+
+		if (!IS_ENABLED(CONFIG_SYS_PCI_64BIT) &&
+		    type == PCI_REGION_MEM && upper_32_bits(pci_addr)) {
+			debug(" - beyond the 32-bit boundary, ignoring\n");
+			continue;
+		}
+
 		pos = -1;
 		for (i = 0; i < hose->region_count; i++) {
 			if (hose->regions[i].flags == type)
@@ -874,22 +882,41 @@ static int decode_regions(struct pci_controller *hose, ofnode parent_node,
 	}
 
 	/* Add a region for our local memory */
+#ifdef CONFIG_NR_DRAM_BANKS
+	bd_t *bd = gd->bd;
+
+	if (!bd)
+		return;
+
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; ++i) {
+		if (bd->bi_dram[i].size) {
+			pci_set_region(hose->regions + hose->region_count++,
+				       bd->bi_dram[i].start,
+				       bd->bi_dram[i].start,
+				       bd->bi_dram[i].size,
+				       PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
+		}
+	}
+#else
+	phys_addr_t base = 0, size;
+
 	size = gd->ram_size;
 #ifdef CONFIG_SYS_SDRAM_BASE
 	base = CONFIG_SYS_SDRAM_BASE;
 #endif
 	if (gd->pci_ram_top && gd->pci_ram_top < base + size)
 		size = gd->pci_ram_top - base;
-	pci_set_region(hose->regions + hose->region_count++, base, base,
-		       size, PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
+	if (size)
+		pci_set_region(hose->regions + hose->region_count++, base,
+			base, size, PCI_REGION_MEM | PCI_REGION_SYS_MEMORY);
+#endif
 
-	return 0;
+	return;
 }
 
 static int pci_uclass_pre_probe(struct udevice *bus)
 {
 	struct pci_controller *hose;
-	int ret;
 
 	debug("%s, bus=%d/%s, parent=%s\n", __func__, bus->seq, bus->name,
 	      bus->parent->name);
@@ -898,12 +925,7 @@ static int pci_uclass_pre_probe(struct udevice *bus)
 	/* For bridges, use the top-level PCI controller */
 	if (!device_is_on_pci_bus(bus)) {
 		hose->ctlr = bus;
-		ret = decode_regions(hose, dev_ofnode(bus->parent),
-				     dev_ofnode(bus));
-		if (ret) {
-			debug("%s: Cannot decode regions\n", __func__);
-			return ret;
-		}
+		decode_regions(hose, dev_ofnode(bus->parent), dev_ofnode(bus));
 	} else {
 		struct pci_controller *parent_hose;
 
@@ -1160,6 +1182,11 @@ static int _dm_pci_bus_to_phys(struct udevice *ctlr,
 	struct pci_region *res;
 	int i;
 
+	if (hose->region_count == 0) {
+		*pa = bus_addr;
+		return 0;
+	}
+
 	for (i = 0; i < hose->region_count; i++) {
 		res = &hose->regions[i];
 
@@ -1222,6 +1249,11 @@ int _dm_pci_phys_to_bus(struct udevice *dev, phys_addr_t phys_addr,
 	/* The root controller has the region information */
 	ctlr = pci_get_controller(dev);
 	hose = dev_get_uclass_priv(ctlr);
+
+	if (hose->region_count == 0) {
+		*ba = phys_addr;
+		return 0;
+	}
 
 	for (i = 0; i < hose->region_count; i++) {
 		res = &hose->regions[i];

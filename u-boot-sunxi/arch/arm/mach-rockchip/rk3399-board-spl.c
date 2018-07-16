@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2016 Rockchip Electronics Co., Ltd
  * (C) Copyright 2017 Theobroma Systems Design und Consulting GmbH
- *
- * SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
@@ -18,8 +17,6 @@
 #include <ram.h>
 #include <spl.h>
 #include <syscon.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 void board_return_to_bootrom(void)
 {
@@ -58,11 +55,6 @@ u32 spl_boot_device(void)
 		return BOOT_DEVICE_BOOTROM;
 
 	return boot_device;
-}
-
-u32 spl_boot_mode(const u32 boot_device)
-{
-	return MMCSD_MODE_RAW;
 }
 
 #define TIMER_CHN10_BASE	0xff8680a0

@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Micrel PHY drivers
- *
- * SPDX-License-Identifier:	GPL-2.0+
  *
  * Copyright 2010-2011 Freescale Semiconductor, Inc.
  * author Andy Fleming
@@ -14,8 +13,6 @@
 #include <fdtdec.h>
 #include <micrel.h>
 #include <phy.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 static struct phy_driver KSZ804_driver = {
 	.name = "Micrel KSZ804",

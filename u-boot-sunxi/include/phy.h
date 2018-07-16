@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2011 Freescale Semiconductor, Inc.
  *	Andy Fleming <afleming@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  *
  * This file pretty much stolen from Linux's mii.h/ethtool.h/phy.h
  */
@@ -66,6 +65,7 @@ typedef enum {
 	PHY_INTERFACE_MODE_XAUI,
 	PHY_INTERFACE_MODE_RXAUI,
 	PHY_INTERFACE_MODE_SFI,
+	PHY_INTERFACE_MODE_INTERNAL,
 	PHY_INTERFACE_MODE_NONE,	/* Must be last */
 
 	PHY_INTERFACE_MODE_COUNT,
@@ -88,6 +88,7 @@ static const char *phy_interface_strings[] = {
 	[PHY_INTERFACE_MODE_XAUI]		= "xaui",
 	[PHY_INTERFACE_MODE_RXAUI]		= "rxaui",
 	[PHY_INTERFACE_MODE_SFI]		= "sfi",
+	[PHY_INTERFACE_MODE_INTERNAL]		= "internal",
 	[PHY_INTERFACE_MODE_NONE]		= "",
 };
 
@@ -257,6 +258,7 @@ int gen10g_startup(struct phy_device *phydev);
 int gen10g_shutdown(struct phy_device *phydev);
 int gen10g_discover_mmds(struct phy_device *phydev);
 
+int phy_b53_init(void);
 int phy_mv88e61xx_init(void);
 int phy_aquantia_init(void);
 int phy_atheros_init(void);
@@ -314,6 +316,7 @@ static inline bool phy_interface_is_sgmii(struct phy_device *phydev)
 
 /* PHY UIDs for various PHYs that are referenced in external code */
 #define PHY_UID_CS4340  0x13e51002
+#define PHY_UID_CS4223  0x03e57003
 #define PHY_UID_TN2020	0x00a19410
 
 #endif

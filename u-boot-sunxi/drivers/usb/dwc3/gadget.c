@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /**
  * gadget.c - DesignWare USB3 DRD Controller Gadget Framework Link
  *
@@ -10,8 +11,6 @@
  * to uboot.
  *
  * commit 8e74475b0e : usb: dwc3: gadget: use udc-core's reset notifier
- *
- * SPDX-License-Identifier:     GPL-2.0
  */
 
 #include <common.h>
@@ -2610,7 +2609,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
 	if (ret)
 		goto err4;
 
-	ret = usb_add_gadget_udc(dwc->dev, &dwc->gadget);
+	ret = usb_add_gadget_udc((struct device *)dwc->dev, &dwc->gadget);
 	if (ret) {
 		dev_err(dwc->dev, "failed to register udc\n");
 		goto err4;

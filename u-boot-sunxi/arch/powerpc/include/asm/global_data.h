@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2002-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef	__ASM_GBL_DATA_H
@@ -19,7 +18,7 @@ struct arch_global_data {
 	u8 sdhc_adapter;
 #endif
 #endif
-#if defined(CONFIG_8xx)
+#if defined(CONFIG_MPC8xx)
 	unsigned long brg_clk;
 #endif
 #if defined(CONFIG_CPM2)

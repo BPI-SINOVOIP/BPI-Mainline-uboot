@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2017 NXP
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __LS1088A_RDB_H
@@ -9,13 +8,10 @@
 
 #include "ls1088a_common.h"
 
-#define CONFIG_DISPLAY_BOARDINFO_LATE
-
 #define CONFIG_MISC_INIT_R
 
 #if defined(CONFIG_QSPI_BOOT)
 #define CONFIG_ENV_SIZE			0x2000          /* 8KB */
-#define CONFIG_ENV_OFFSET		0x300000        /* 3MB */
 #define CONFIG_ENV_SECT_SIZE		0x40000
 #elif defined(CONFIG_SD_BOOT)
 #define CONFIG_ENV_OFFSET		(3 * 1024 * 1024)
@@ -29,7 +25,9 @@
 #endif
 
 #if defined(CONFIG_QSPI_BOOT) || defined(CONFIG_SD_BOOT_QSPI)
+#ifndef CONFIG_SPL_BUILD
 #define CONFIG_QIXIS_I2C_ACCESS
+#endif
 #define SYS_NO_FLASH
 #undef CONFIG_CMD_IMLS
 #endif
@@ -97,7 +95,11 @@
 #define CONFIG_SYS_FLASH_BANKS_LIST	{ CONFIG_SYS_FLASH_BASE }
 #endif
 #endif
+
+#ifndef SPL_NO_IFC
 #define CONFIG_NAND_FSL_IFC
+#endif
+
 #define CONFIG_SYS_NAND_MAX_ECCPOS	256
 #define CONFIG_SYS_NAND_MAX_OOBFREE	2
 
@@ -139,8 +141,12 @@
 
 #define CONFIG_SYS_NAND_BLOCK_SIZE	(128 * 1024)
 
+#ifndef SPL_NO_QIXIS
 #define CONFIG_FSL_QIXIS
+#endif
+
 #define CONFIG_SYS_I2C_FPGA_ADDR	0x66
+#define QIXIS_BRDCFG4_OFFSET            0x54
 #define QIXIS_LBMAP_SWITCH		2
 #define QIXIS_QMAP_MASK			0xe0
 #define QIXIS_QMAP_SHIFT		5
@@ -149,9 +155,11 @@
 #define QIXIS_LBMAP_DFLTBANK		0x00
 #define QIXIS_LBMAP_ALTBANK		0x20
 #define QIXIS_LBMAP_SD			0x00
+#define QIXIS_LBMAP_EMMC		0x00
 #define QIXIS_LBMAP_SD_QSPI		0x00
 #define QIXIS_LBMAP_QSPI		0x00
 #define QIXIS_RCW_SRC_SD		0x40
+#define QIXIS_RCW_SRC_EMMC		0x41
 #define QIXIS_RCW_SRC_QSPI		0x62
 #define QIXIS_RST_CTL_RESET		0x31
 #define QIXIS_RCFG_CTL_RECONFIG_IDLE	0x20
@@ -215,6 +223,32 @@
 
 #define CONFIG_SYS_LS_MC_BOOT_TIMEOUT_MS 5000
 
+#define I2C_MUX_CH_VOL_MONITOR          0xA
+/* Voltage monitor on channel 2*/
+#define I2C_VOL_MONITOR_ADDR           0x63
+#define I2C_VOL_MONITOR_BUS_V_OFFSET   0x2
+#define I2C_VOL_MONITOR_BUS_V_OVF      0x1
+#define I2C_VOL_MONITOR_BUS_V_SHIFT    3
+#define I2C_SVDD_MONITOR_ADDR		0x4F
+
+#define CONFIG_VID_FLS_ENV              "ls1088ardb_vdd_mv"
+#define CONFIG_VID
+
+/* The lowest and highest voltage allowed for LS1088ARDB */
+#define VDD_MV_MIN			819
+#define VDD_MV_MAX			1212
+
+#define CONFIG_VOL_MONITOR_LTC3882_SET
+#define CONFIG_VOL_MONITOR_LTC3882_READ
+
+/* PM Bus commands code for LTC3882*/
+#define PMBUS_CMD_PAGE                  0x0
+#define PMBUS_CMD_READ_VOUT             0x8B
+#define PMBUS_CMD_PAGE_PLUS_WRITE       0x05
+#define PMBUS_CMD_VOUT_COMMAND          0x21
+
+#define PWM_CHANNEL0                    0x0
+
 /*
  * I2C bus multiplexer
  */
@@ -223,6 +257,8 @@
 #define I2C_RETIMER_ADDR		0x18
 #define I2C_MUX_CH_DEFAULT		0x8
 #define I2C_MUX_CH5			0xD
+
+#ifndef SPL_NO_RTC
 /*
 * RTC configuration
 */
@@ -230,6 +266,7 @@
 #define CONFIG_RTC_PCF8563 1
 #define CONFIG_SYS_I2C_RTC_ADDR         0x51  /* Channel 3*/
 #define CONFIG_CMD_DATE
+#endif
 
 /* EEPROM */
 #define CONFIG_ID_EEPROM
@@ -240,15 +277,16 @@
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	3
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	5
 
+#ifndef SPL_NO_QSPI
 /* QSPI device */
 #if defined(CONFIG_QSPI_BOOT) || defined(CONFIG_SD_BOOT_QSPI)
 #define CONFIG_FSL_QSPI
 #define FSL_QSPI_FLASH_SIZE		(1 << 26)
 #define FSL_QSPI_FLASH_NUM		2
 #endif
+#endif
 
 #define CONFIG_CMD_MEMINFO
-#define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_MEMTEST_START	0x80000000
 #define CONFIG_SYS_MEMTEST_END		0x9fffffff
 
@@ -260,6 +298,7 @@
 
 #define CONFIG_FSL_MEMAC
 
+#ifndef SPL_NO_ENV
 /* Initial environment variables */
 #if defined(CONFIG_QSPI_BOOT)
 #define MC_INIT_CMD				\
@@ -408,21 +447,21 @@
 #define CONFIG_ETHPRIME		"DPMAC1@xgmii"
 #define CONFIG_PHY_GIGE
 #endif
+#endif
 
 /*  MMC  */
 #ifdef CONFIG_MMC
-#define CONFIG_FSL_ESDHC
 #define CONFIG_SYS_FSL_MMC_HAS_CAPBLT_VS33
 #endif
 
-#undef CONFIG_CMDLINE_EDITING
-#include <config_distro_defaults.h>
+#ifndef SPL_NO_ENV
 
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 0) \
 	func(SCSI, scsi, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
+#endif
 
 #include <asm/fsl_secure_boot.h>
 

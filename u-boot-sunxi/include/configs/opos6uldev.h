@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2017 Armadeus Systems
  *
  * Configuration settings for the OPOS6ULDev board
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __OPOS6ULDEV_CONFIG_H
@@ -15,11 +14,7 @@
 #include "imx6_spl.h"
 
 #ifdef CONFIG_SPL_BUILD
-#undef CONFIG_DM_GPIO
-#undef CONFIG_DM_MMC
-#undef CONFIG_BLK
-
-#define CONFIG_MXC_UART_BASE		UART1_BASE
+#undef CONFIG_DM_REGULATOR
 #endif
 #endif
 
@@ -40,7 +35,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* MMC */
-#define CONFIG_SYS_FSL_ESDHC_ADDR 0
 #define CONFIG_SUPPORT_EMMC_BOOT
 
 /* USB */
@@ -49,7 +43,6 @@
 #define CONFIG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
 #define CONFIG_MXC_USB_FLAGS		0
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2
-#define CONFIG_USB_FUNCTION_MASS_STORAGE
 #endif
 
 /* Ethernet */
@@ -62,6 +55,7 @@
 #endif
 
 /* LCD */
+#ifndef CONFIG_SPL_BUILD
 #ifdef CONFIG_VIDEO
 #define CONFIG_VIDEO_LOGO
 #define CONFIG_SPLASH_SCREEN
@@ -72,6 +66,7 @@
 #define CONFIG_BMP_16BPP
 #define CONFIG_VIDEO_MXS
 #define MXS_LCDIF_BASE MX6UL_LCDIF1_BASE_ADDR
+#endif
 #endif
 
 /* Environment is stored in the eMMC boot partition */

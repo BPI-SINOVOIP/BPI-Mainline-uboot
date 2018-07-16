@@ -67,6 +67,12 @@ extern int usbtty_tstc(void);
 
 struct udevice;
 
+enum serial_par {
+	SERIAL_PAR_NONE,
+	SERIAL_PAR_ODD,
+	SERIAL_PAR_EVEN
+};
+
 /**
  * struct struct dm_serial_ops - Driver model serial operations
  *
@@ -143,6 +149,16 @@ struct dm_serial_ops {
 	 */
 	int (*loop)(struct udevice *dev, int on);
 #endif
+	/**
+	 * setparity() - Set up the parity
+	 *
+	 * Set up a new parity for this device.
+	 *
+	 * @dev: Device pointer
+	 * @parity: parity to use
+	 * @return 0 if OK, -ve on error
+	 */
+	int (*setparity)(struct udevice *dev, enum serial_par parity);
 };
 
 /**
@@ -165,46 +181,15 @@ struct serial_dev_priv {
 /* Access the serial operations for a device */
 #define serial_get_ops(dev)	((struct dm_serial_ops *)(dev)->driver->ops)
 
-void amirix_serial_initialize(void);
-void arc_serial_initialize(void);
-void arm_dcc_initialize(void);
-void asc_serial_initialize(void);
 void atmel_serial_initialize(void);
 void au1x00_serial_initialize(void);
-void bfin_jtag_initialize(void);
-void bfin_serial_initialize(void);
-void bmw_serial_initialize(void);
-void clps7111_serial_initialize(void);
-void cogent_serial_initialize(void);
-void cpci750_serial_initialize(void);
-void evb64260_serial_initialize(void);
-void imx_serial_initialize(void);
-void iop480_serial_initialize(void);
-void jz_serial_initialize(void);
-void leon2_serial_initialize(void);
-void leon3_serial_initialize(void);
-void lh7a40x_serial_initialize(void);
-void lpc32xx_serial_initialize(void);
-void marvell_serial_initialize(void);
-void max3100_serial_initialize(void);
 void mcf_serial_initialize(void);
-void ml2_serial_initialize(void);
 void mpc85xx_serial_initialize(void);
 void mpc8xx_serial_initialize(void);
 void mxc_serial_initialize(void);
-void mxs_auart_initialize(void);
 void ns16550_serial_initialize(void);
-void oc_serial_initialize(void);
-void p3mx_serial_initialize(void);
 void pl01x_serial_initialize(void);
 void pxa_serial_initialize(void);
-void s3c24xx_serial_initialize(void);
-void s5p_serial_initialize(void);
-void sa1100_serial_initialize(void);
-void sandbox_serial_initialize(void);
-void sconsole_serial_initialize(void);
 void sh_serial_initialize(void);
-void uartlite_serial_initialize(void);
-void zynq_serial_initialize(void);
 
 #endif

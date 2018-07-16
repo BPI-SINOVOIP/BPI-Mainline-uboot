@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
  * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -12,7 +11,6 @@
 
 #define CONFIG_SYS_FLASH_BASE		0x08000000
 #define CONFIG_SYS_INIT_SP_ADDR		0x24040000
-#define CONFIG_SYS_TEXT_BASE		0x08000000
 
 /*
  * Configuration of the external SDRAM memory
@@ -25,8 +23,7 @@
 
 #define CONFIG_ENV_SIZE			(8 << 10)
 
-#define CONFIG_SYS_ARCH_TIMER
-#define CONFIG_SYS_HZ_CLOCK		250000000
+#define CONFIG_SYS_HZ_CLOCK		1000000
 
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -42,9 +39,6 @@
 /*
  * Command line configuration.
  */
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_CMDLINE_EDITING
 #define CONFIG_CMD_CACHE
 #define CONFIG_BOARD_LATE_INIT
 

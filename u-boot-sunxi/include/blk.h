@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2000-2004
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef BLK_H
@@ -32,8 +31,8 @@ enum if_type {
 	IF_TYPE_SD,
 	IF_TYPE_SATA,
 	IF_TYPE_HOST,
-	IF_TYPE_SYSTEMACE,
 	IF_TYPE_NVME,
+	IF_TYPE_EFI,
 
 	IF_TYPE_COUNT,			/* Number of interface types */
 };
@@ -112,7 +111,7 @@ struct blk_desc {
 #define PAD_TO_BLOCKSIZE(size, blk_desc) \
 	(PAD_SIZE(size, blk_desc->blksz))
 
-#ifdef CONFIG_BLOCK_CACHE
+#if CONFIG_IS_ENABLED(BLOCK_CACHE)
 /**
  * blkcache_read() - attempt to read a set of blocks from cache
  *

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2013 Siemens Schweiz AG
  * (C) Heiko Schocher, DENX Software Engineering, hs@denx.de.
@@ -6,8 +7,6 @@
  * U-Boot file:/include/configs/am335x_evm.h
  *
  * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_ETAMIN_H
@@ -70,7 +69,6 @@
 
 #define CONFIG_SYS_NAND_ONFI_DETECTION
 #define DDR_PLL_FREQ	303
-#undef CONFIG_SPL_AM33XX_ENABLE_RTC32K_OSC
 
 /* FWD Button = 27
  * SRV Button = 87 */

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2009
  * Marvell Semiconductor <www.marvell.com>
@@ -8,14 +9,13 @@
  *
  * based on - Driver for MV64360X ethernet ports
  * Copyright (C) 2002 rabeeh@galileo.co.il
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <net.h>
 #include <malloc.h>
 #include <miiphy.h>
+#include <wait_bit.h>
 #include <asm/io.h>
 #include <linux/errno.h>
 #include <asm/types.h>
@@ -27,8 +27,6 @@
 #include <asm/arch/soc.h>
 #elif defined(CONFIG_ORION5X)
 #include <asm/arch/orion5x.h>
-#elif defined(CONFIG_DOVE)
-#include <asm/arch/dove.h>
 #endif
 
 #include "mvgbe.h"
@@ -43,10 +41,24 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MVGBE_SMI_REG (((struct mvgbe_registers *)MVGBE0_BASE)->smi)
 
 #if defined(CONFIG_PHYLIB) || defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
+static int smi_wait_ready(struct mvgbe_device *dmvgbe)
+{
+	int ret;
+
+	ret = wait_for_bit_le32(&MVGBE_SMI_REG, MVGBE_PHY_SMI_BUSY_MASK, false,
+				MVGBE_PHY_SMI_TIMEOUT_MS, false);
+	if (ret) {
+		printf("Error: SMI busy timeout\n");
+		return ret;
+	}
+
+	return 0;
+}
+
 /*
  * smi_reg_read - miiphy_read callback function.
  *
- * Returns 16bit phy register value, or 0xffff on error
+ * Returns 16bit phy register value, or -EFAULT on error
  */
 static int smi_reg_read(struct mii_dev *bus, int phy_adr, int devad,
 			int reg_ofs)
@@ -77,16 +89,9 @@ static int smi_reg_read(struct mii_dev *bus, int phy_adr, int devad,
 		return -EFAULT;
 	}
 
-	timeout = MVGBE_PHY_SMI_TIMEOUT;
 	/* wait till the SMI is not busy */
-	do {
-		/* read smi register */
-		smi_reg = MVGBE_REG_RD(MVGBE_SMI_REG);
-		if (timeout-- == 0) {
-			printf("Err..(%s) SMI busy timeout\n", __func__);
-			return -EFAULT;
-		}
-	} while (smi_reg & MVGBE_PHY_SMI_BUSY_MASK);
+	if (smi_wait_ready(dmvgbe) < 0)
+		return -EFAULT;
 
 	/* fill the phy address and regiser offset and read opcode */
 	smi_reg = (phy_adr << MVGBE_PHY_SMI_DEV_ADDR_OFFS)
@@ -122,10 +127,9 @@ static int smi_reg_read(struct mii_dev *bus, int phy_adr, int devad,
 }
 
 /*
- * smi_reg_write - imiiphy_write callback function.
+ * smi_reg_write - miiphy_write callback function.
  *
- * Returns 0 if write succeed, -EINVAL on bad parameters
- * -ETIME on timeout
+ * Returns 0 if write succeed, -EFAULT on error
  */
 static int smi_reg_write(struct mii_dev *bus, int phy_adr, int devad,
 			 int reg_ofs, u16 data)
@@ -134,7 +138,6 @@ static int smi_reg_write(struct mii_dev *bus, int phy_adr, int devad,
 	struct mvgbe_device *dmvgbe = to_mvgbe(dev);
 	struct mvgbe_registers *regs = dmvgbe->regs;
 	u32 smi_reg;
-	u32 timeout;
 
 	/* Phyadr write request*/
 	if (phy_adr == MV_PHY_ADR_REQUEST &&
@@ -150,19 +153,12 @@ static int smi_reg_write(struct mii_dev *bus, int phy_adr, int devad,
 	}
 	if (reg_ofs > PHYREG_MASK) {
 		printf("Err..(%s) Invalid register offset\n", __func__);
-		return -EINVAL;
+		return -EFAULT;
 	}
 
 	/* wait till the SMI is not busy */
-	timeout = MVGBE_PHY_SMI_TIMEOUT;
-	do {
-		/* read smi register */
-		smi_reg = MVGBE_REG_RD(MVGBE_SMI_REG);
-		if (timeout-- == 0) {
-			printf("Err..(%s) SMI busy timeout\n", __func__);
-			return -ETIME;
-		}
-	} while (smi_reg & MVGBE_PHY_SMI_BUSY_MASK);
+	if (smi_wait_ready(dmvgbe) < 0)
+		return -EFAULT;
 
 	/* fill the phy addr and reg offset and write opcode and data */
 	smi_reg = (data << MVGBE_PHY_SMI_DATA_OFFS);

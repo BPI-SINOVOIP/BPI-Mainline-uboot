@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2009 Samsung Electronics
  * Minkyu Kang <mk7.kang@samsung.com>
@@ -5,8 +6,6 @@
  * Inki Dae <inki.dae@samsung.com>
  *
  * Configuation settings for the SAMSUNG SMDKC100 board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -19,7 +18,6 @@
 #define CONFIG_SAMSUNG		1	/* in a SAMSUNG core */
 #define CONFIG_S5P		1	/* which is in a S5P Family */
 #define CONFIG_S5PC100		1	/* which is in a S5PC100 */
-#define CONFIG_SMDKC100		1	/* working with SMDKC100 */
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 
@@ -32,12 +30,10 @@
 #define CONFIG_SYS_SDRAM_BASE		0x30000000
 
 /* Text Base */
-#define CONFIG_SYS_TEXT_BASE		0x34800000
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_INITRD_TAG
-#define CONFIG_CMDLINE_EDITING
 
 /*
  * Size of malloc() pool
@@ -118,7 +114,6 @@
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
 /* memtest works on */
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE

@@ -1,24 +1,21 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Renesas RSK2+SH7264 board
  *
  * Copyright (C) 2011 Renesas Electronics Europe Ltd.
  * Copyright (C) 2008 Nobuhiro Iwamatsu
  * Copyright (C) 2008 Renesas Solutions Corp.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __RSK7264_H
 #define __RSK7264_H
 
 #define CONFIG_CPU_SH7264	1
-#define CONFIG_RSK7264		1
 
 #define CONFIG_DISPLAY_BOARDINFO
 
 #define CONFIG_SYS_BAUDRATE_TABLE	{ CONFIG_BAUDRATE }
 
-#define CONFIG_SYS_LONGHELP	1	/* undef to save memory	*/
 #define CONFIG_SYS_PBSIZE	256	/* Buffer size for Console output */
 
 /* Serial */
@@ -26,7 +23,6 @@
 
 /* Memory */
 /* u-boot relocated to top 256KB of ram */
-#define CONFIG_SYS_TEXT_BASE		0x0CFC0000
 #define CONFIG_SYS_SDRAM_BASE		0x0C000000
 #define CONFIG_SYS_SDRAM_SIZE		(64 * 1024 * 1024)
 

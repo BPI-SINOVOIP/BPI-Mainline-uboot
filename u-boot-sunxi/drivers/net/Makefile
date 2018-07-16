@@ -1,9 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0+
 #
 # (C) Copyright 2006
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
 
 obj-$(CONFIG_ALTERA_TSE) += altera_tse.o
 obj-$(CONFIG_AG7XXX) += ag7xxx.o
@@ -23,7 +21,6 @@ obj-$(CONFIG_E1000_SPI) += e1000_spi.o
 obj-$(CONFIG_EEPRO100) += eepro100.o
 obj-$(CONFIG_SUN4I_EMAC) += sunxi_emac.o
 obj-$(CONFIG_SUN8I_EMAC) += sun8i_emac.o
-obj-$(CONFIG_ENC28J60) += enc28j60.o
 obj-$(CONFIG_EP93XX) += ep93xx_eth.o
 obj-$(CONFIG_ETHOC) += ethoc.o
 obj-$(CONFIG_FEC_MXC) += fec_mxc.o
@@ -61,13 +58,10 @@ obj-$(CONFIG_DRIVER_TI_EMAC) += davinci_emac.o
 obj-$(CONFIG_TSEC_ENET) += tsec.o fsl_mdio.o
 obj-$(CONFIG_DRIVER_TI_CPSW) += cpsw.o cpsw-common.o
 obj-$(CONFIG_FMAN_ENET) += fsl_mdio.o
-obj-$(CONFIG_TSI108_ETH) += tsi108_eth.o
 obj-$(CONFIG_ULI526X) += uli526x.o
 obj-$(CONFIG_VSC7385_ENET) += vsc7385.o
 obj-$(CONFIG_XILINX_AXIEMAC) += xilinx_axi_emac.o
 obj-$(CONFIG_XILINX_EMACLITE) += xilinx_emaclite.o
-obj-$(CONFIG_XILINX_LL_TEMAC) += xilinx_ll_temac.o xilinx_ll_temac_mdio.o \
-		xilinx_ll_temac_fifo.o xilinx_ll_temac_sdma.o
 obj-$(CONFIG_ZYNQ_GEM) += zynq_gem.o
 obj-$(CONFIG_FSL_MC_ENET) += fsl-mc/
 obj-$(CONFIG_FSL_MC_ENET) += ldpaa_eth/
@@ -75,3 +69,5 @@ obj-$(CONFIG_FSL_MEMAC) += fm/memac_phy.o
 obj-$(CONFIG_VSC9953) += vsc9953.o
 obj-$(CONFIG_PIC32_ETH) += pic32_mdio.o pic32_eth.o
 obj-$(CONFIG_DWC_ETH_QOS) += dwc_eth_qos.o
+obj-$(CONFIG_FSL_PFE) += pfe_eth/
+obj-$(CONFIG_SNI_AVE) += sni_ave.o

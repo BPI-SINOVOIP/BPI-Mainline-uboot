@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2013 Google, Inc
  *
  * (C) Copyright 2012
  * Pavel Herrmann <morpheus.ibis@gmail.com>
  * Marek Vasut <marex@denx.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _DM_DEVICE_H
@@ -203,7 +202,7 @@ struct udevice_id {
  * it.
  *
  * @name: Device name
- * @id: Identiies the uclass we belong to
+ * @id: Identifies the uclass we belong to
  * @of_match: List of compatible strings to match, and any identifying data
  * for each.
  * @bind: Called to bind a device to its driver

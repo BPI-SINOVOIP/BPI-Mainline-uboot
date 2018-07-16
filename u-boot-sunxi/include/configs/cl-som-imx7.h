@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2015 CompuLab, Ltd.
  *
  * Configuration settings for the CompuLab CL-SOM-iMX7 System-on-Module.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CL_SOM_IMX7_CONFIG_H
@@ -147,8 +146,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* SPI Flash support */
-#define CONFIG_SPI
-#define CONFIG_MXC_SPI
 #define CONFIG_SF_DEFAULT_BUS		0
 #define CONFIG_SF_DEFAULT_CS		0
 #define CONFIG_SF_DEFAULT_SPEED		20000000
@@ -185,7 +182,6 @@
 /* SPL */
 #include "imx7_spl.h"
 #ifdef CONFIG_SPL_BUILD
-#define CONFIG_SPL_SPI_LOAD
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	(64 * 1024)
 #endif /* CONFIG_SPL_BUILD */
 

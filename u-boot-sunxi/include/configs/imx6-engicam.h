@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2016 Amarula Solutions B.V.
  * Copyright (C) 2016 Engicam S.r.l.
  *
  * Configuration settings for the Engicam i.MX6 SOM Starter Kits.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __IMX6_ENGICAM_CONFIG_H
@@ -130,11 +129,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_INIT_RAM_ADDR + \
 					CONFIG_SYS_INIT_SP_OFFSET)
 
-/* FIT */
-#ifdef CONFIG_FIT
-# define CONFIG_IMAGE_FORMAT_LEGACY
-#endif
-
 /* UART */
 #ifdef CONFIG_MXC_UART
 # ifdef CONFIG_MX6UL
@@ -161,10 +155,6 @@
 /* MTD device */
 # define CONFIG_MTD_DEVICE
 # define CONFIG_MTD_PARTITIONS
-
-# define CONFIG_APBH_DMA
-# define CONFIG_APBH_DMA_BURST
-# define CONFIG_APBH_DMA_BURST8
 #endif
 
 /* Ethernet */
@@ -208,7 +198,7 @@
 
 /* SPL */
 #ifdef CONFIG_SPL
-# ifdef CONFIG_NAND_MXS
+# ifdef CONFIG_ENV_IS_IN_NAND
 #  define CONFIG_SPL_NAND_SUPPORT
 # else
 #  define CONFIG_SPL_MMC_SUPPORT

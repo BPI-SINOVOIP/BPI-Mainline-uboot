@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Freescale MCF54451 EVB board.
  *
  * Copyright (C) 2004-2008 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -33,9 +32,6 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /* Network configuration */
 #define CONFIG_MCFFEC
@@ -67,7 +63,7 @@
 #	endif			/* CONFIG_SYS_DISCOVER_PHY */
 #endif
 
-#define CONFIG_HOSTNAME		M54451EVB
+#define CONFIG_HOSTNAME		"M54451EVB"
 #ifdef CONFIG_SYS_STMICRO_BOOT
 /* ST Micro serial flash */
 #define	CONFIG_SYS_LOAD_ADDR2		0x40010007
@@ -119,7 +115,6 @@
 #define CONFIG_SYS_IMMR			CONFIG_SYS_MBAR
 
 /* DSPI and Serial Flash */
-#define CONFIG_CF_SPI
 #define CONFIG_CF_DSPI
 #define CONFIG_SERIAL_FLASH
 #define CONFIG_HARD_SPI
@@ -141,8 +136,6 @@
 #define CONFIG_EXTRA_CLOCK
 
 #define CONFIG_PRAM			2048	/* 2048 KB */
-
-#define CONFIG_SYS_LONGHELP		/* undef to save memory */
 
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE	/* Boot Argument Buffer Size    */
 

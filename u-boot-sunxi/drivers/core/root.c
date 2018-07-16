@@ -1,17 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2013 Google, Inc
  *
  * (C) Copyright 2012
  * Pavel Herrmann <morpheus.ibis@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <errno.h>
 #include <fdtdec.h>
 #include <malloc.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <dm/device.h>
 #include <dm/device-internal.h>
 #include <dm/lists.h>
@@ -266,6 +265,17 @@ static int dm_scan_fdt_node(struct udevice *parent, const void *blob,
 	for (offset = fdt_first_subnode(blob, offset);
 	     offset > 0;
 	     offset = fdt_next_subnode(blob, offset)) {
+		/* "chosen" node isn't a device itself but may contain some: */
+		if (!strcmp(fdt_get_name(blob, offset, NULL), "chosen")) {
+			pr_debug("parsing subnodes of \"chosen\"\n");
+
+			err = dm_scan_fdt_node(parent, blob, offset,
+					       pre_reloc_only);
+			if (err && !ret)
+				ret = err;
+			continue;
+		}
+
 		if (pre_reloc_only &&
 		    !dm_fdt_pre_reloc(blob, offset))
 			continue;
@@ -322,7 +332,8 @@ static int dm_scan_fdt_node(struct udevice *parent, const void *blob,
 
 int dm_extended_scan_fdt(const void *blob, bool pre_reloc_only)
 {
-	int node, ret;
+	int ret;
+	ofnode node;
 
 	ret = dm_scan_fdt(gd->fdt_blob, pre_reloc_only);
 	if (ret) {
@@ -331,13 +342,18 @@ int dm_extended_scan_fdt(const void *blob, bool pre_reloc_only)
 	}
 
 	/* bind fixed-clock */
-	node = ofnode_to_offset(ofnode_path("/clocks"));
+	node = ofnode_path("/clocks");
 	/* if no DT "clocks" node, no need to go further */
-	if (node < 0)
+	if (!ofnode_valid(node))
 		return ret;
 
-	ret = dm_scan_fdt_node(gd->dm_root, gd->fdt_blob, node,
-			       pre_reloc_only);
+#if CONFIG_IS_ENABLED(OF_LIVE)
+	if (of_live_active())
+		ret = dm_scan_fdt_live(gd->dm_root, node.np, pre_reloc_only);
+	else
+#endif
+		ret = dm_scan_fdt_node(gd->dm_root, gd->fdt_blob, node.of_offset,
+				       pre_reloc_only);
 	if (ret)
 		debug("dm_scan_fdt_node() failed: %d\n", ret);
 

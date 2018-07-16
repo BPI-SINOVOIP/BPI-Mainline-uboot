@@ -46,7 +46,7 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	model = "Banana Pi BPI-M2";
+	model = "Sinovoip BPI-M2";
 	compatible = "sinovoip,bpi-m2", "allwinner,sun6i-a31s";
 
 	aliases {

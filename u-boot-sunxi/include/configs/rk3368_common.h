@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2016 Andreas Färber
- *
- * SPDX-License-Identifier:     GPL-2.0+
  */
 
 #ifndef __CONFIG_RK3368_COMMON_H
@@ -24,10 +23,8 @@
 
 #define COUNTER_FREQUENCY               24000000
 
-#define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SYS_NS16550_MEM32
 
-#define CONFIG_SYS_TEXT_BASE		0x00200000
 #define CONFIG_SYS_INIT_SP_ADDR		0x00300000
 #define CONFIG_SYS_LOAD_ADDR		0x00280000
 

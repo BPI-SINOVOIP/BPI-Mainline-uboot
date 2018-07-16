@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2011 Samsung Electronics
  * Heungjun Kim <riverful.kim@samsung.com>
  *
  * Configuation settings for the SAMSUNG TRATS (EXYNOS4210) board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_TRATS_H
@@ -26,15 +25,12 @@
 #define CONFIG_NR_DRAM_BANKS		4
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define PHYS_SDRAM_1			CONFIG_SYS_SDRAM_BASE
-#define CONFIG_SYS_TEXT_BASE		0x63300000
 #define SDRAM_BANK_SIZE			(256 << 20)	/* 256 MB */
 
 /* memtest works on */
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + 0x5000000)
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x4800000)
-
-#define CONFIG_SYS_TEXT_BASE		0x63300000
 
 /* select serial console configuration */
 #define CONFIG_SERIAL2
@@ -59,9 +55,6 @@
 #define CONFIG_ENV_OFFSET		((32 - 4) << 10) /* 32KiB - 4KiB */
 
 #define CONFIG_ENV_OVERWRITE
-
-#define CONFIG_ENV_VARS_UBOOT_CONFIG
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 /* Tizen - partitions definitions */
 #define PARTS_CSA		"csa-mmc"
@@ -171,7 +164,6 @@
 
 /* Security subsystem - enable hw_rand() */
 #define CONFIG_EXYNOS_ACE_SHA
-#define CONFIG_LIB_HW_RAND
 
 /* Common misc for Samsung */
 #define CONFIG_MISC_COMMON

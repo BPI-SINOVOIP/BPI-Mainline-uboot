@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2011 Freescale Semiconductor, Inc.
  * Author: Fabio Estevam <fabio.estevam@freescale.com>
@@ -5,14 +6,11 @@
  * Based on m28evk.h:
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef __CONFIGS_MX28EVK_H__
 #define __CONFIGS_MX28EVK_H__
 
 /* System configurations */
-#define CONFIG_MX28				/* i.MX28 SoC */
 #define CONFIG_MACH_TYPE	MACH_TYPE_MX28EVK
 
 /* Memory configuration */
@@ -45,7 +43,7 @@
 		(CONFIG_ENV_OFFSET + CONFIG_ENV_RANGE)
 #endif
 
-/* Environemnt is in SPI flash */
+/* Environment is in SPI flash */
 #if defined(CONFIG_CMD_SF) && defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_OFFSET		0x40000		/* 256K */
@@ -66,6 +64,7 @@
 /* FEC Ethernet on SoC */
 #ifdef	CONFIG_CMD_NET
 #define CONFIG_FEC_MXC
+#define CONFIG_FEC_MXC_MDIO_BASE MXS_ENET0_BASE
 #define CONFIG_MX28_FEC_MAC_IN_OCOTP
 #endif
 

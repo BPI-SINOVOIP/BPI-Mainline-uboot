@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  *  EFI application runtime services
  *
  *  Copyright (c) 2016 Alexander Graf
- *
- *  SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
@@ -11,7 +10,6 @@
 #include <dm.h>
 #include <efi_loader.h>
 #include <rtc.h>
-#include <asm/global_data.h>
 
 /* For manual relocation support */
 DECLARE_GLOBAL_DATA_PTR;
@@ -30,13 +28,10 @@ static efi_status_t __efi_runtime EFIAPI efi_unimplemented(void);
 static efi_status_t __efi_runtime EFIAPI efi_device_error(void);
 static efi_status_t __efi_runtime EFIAPI efi_invalid_parameter(void);
 
-#ifdef CONFIG_SYS_CACHELINE_SIZE
-#define EFI_CACHELINE_SIZE CONFIG_SYS_CACHELINE_SIZE
-#else
-/* Just use the greatest cache flush alignment requirement I'm aware of */
-#define EFI_CACHELINE_SIZE 128
-#endif
-
+/*
+ * TODO(sjg@chromium.org): These defines and structs should come from the elf
+ * header for each arch (or a generic header) rather than being repeated here.
+ */
 #if defined(CONFIG_ARM64)
 #define R_RELATIVE	1027
 #define R_MASK		0xffffffffULL
@@ -48,6 +43,25 @@ static efi_status_t __efi_runtime EFIAPI efi_invalid_parameter(void);
 #include <asm/elf.h>
 #define R_RELATIVE	R_386_RELATIVE
 #define R_MASK		0xffULL
+#elif defined(CONFIG_RISCV)
+#include <elf.h>
+#define R_RELATIVE	R_RISCV_RELATIVE
+#define R_MASK		0xffULL
+#define IS_RELA		1
+
+struct dyn_sym {
+	ulong foo1;
+	ulong addr;
+	u32 foo2;
+	u32 foo3;
+};
+#ifdef CONFIG_CPU_RISCV_32
+#define R_ABSOLUTE	R_RISCV_32
+#define SYM_INDEX	8
+#else
+#define R_ABSOLUTE	R_RISCV_64
+#define SYM_INDEX	32
+#endif
 #else
 #error Need to add relocation awareness
 #endif
@@ -74,12 +88,24 @@ static void EFIAPI efi_reset_system_boottime(
 			efi_status_t reset_status,
 			unsigned long data_size, void *reset_data)
 {
+	struct efi_event *evt;
+
 	EFI_ENTRY("%d %lx %lx %p", reset_type, reset_status, data_size,
 		  reset_data);
 
+	/* Notify reset */
+	list_for_each_entry(evt, &efi_events, link) {
+		if (evt->group &&
+		    !guidcmp(evt->group,
+			     &efi_guid_event_group_reset_system)) {
+			efi_signal_event(evt, false);
+			break;
+		}
+	}
 	switch (reset_type) {
 	case EFI_RESET_COLD:
 	case EFI_RESET_WARM:
+	case EFI_RESET_PLATFORM_SPECIFIC:
 		do_reset(NULL, 0, 0, NULL);
 		break;
 	case EFI_RESET_SHUTDOWN:
@@ -134,8 +160,9 @@ void __weak __efi_runtime EFIAPI efi_reset_system(
 	while (1) { }
 }
 
-void __weak efi_reset_system_init(void)
+efi_status_t __weak efi_reset_system_init(void)
 {
+	return EFI_SUCCESS;
 }
 
 efi_status_t __weak __efi_runtime EFIAPI efi_get_time(
@@ -146,8 +173,9 @@ efi_status_t __weak __efi_runtime EFIAPI efi_get_time(
 	return EFI_DEVICE_ERROR;
 }
 
-void __weak efi_get_time_init(void)
+efi_status_t __weak efi_get_time_init(void)
 {
+	return EFI_SUCCESS;
 }
 
 struct efi_runtime_detach_list_struct {
@@ -188,7 +216,7 @@ static const struct efi_runtime_detach_list_struct efi_runtime_detach_list[] = {
 		.ptr = &efi_runtime_services.get_variable,
 		.patchto = &efi_device_error,
 	}, {
-		.ptr = &efi_runtime_services.get_next_variable,
+		.ptr = &efi_runtime_services.get_next_variable_name,
 		.patchto = &efi_device_error,
 	}, {
 		.ptr = &efi_runtime_services.set_variable,
@@ -240,15 +268,27 @@ void efi_runtime_relocate(ulong offset, struct efi_mem_desc *map)
 
 		p = (void*)((ulong)rel->offset - base) + gd->relocaddr;
 
-		if ((rel->info & R_MASK) != R_RELATIVE) {
-			continue;
-		}
+		debug("%s: rel->info=%#lx *p=%#lx rel->offset=%p\n", __func__, rel->info, *p, rel->offset);
 
+		switch (rel->info & R_MASK) {
+		case R_RELATIVE:
 #ifdef IS_RELA
 		newaddr = rel->addend + offset - CONFIG_SYS_TEXT_BASE;
 #else
 		newaddr = *p - lastoff + offset;
 #endif
+			break;
+#ifdef R_ABSOLUTE
+		case R_ABSOLUTE: {
+			ulong symidx = rel->info >> SYM_INDEX;
+			extern struct dyn_sym __dyn_sym_start[];
+			newaddr = __dyn_sym_start[symidx].addr + offset;
+			break;
+		}
+#endif
+		default:
+			continue;
+		}
 
 		/* Check if the relocation is inside bounds */
 		if (map && ((newaddr < map->virtual_start) ||
@@ -332,18 +372,26 @@ static efi_status_t EFIAPI efi_set_virtual_address_map(
 	return EFI_EXIT(EFI_INVALID_PARAMETER);
 }
 
-void efi_add_runtime_mmio(void *mmio_ptr, u64 len)
+efi_status_t efi_add_runtime_mmio(void *mmio_ptr, u64 len)
 {
 	struct efi_runtime_mmio_list *newmmio;
-
 	u64 pages = (len + EFI_PAGE_MASK) >> EFI_PAGE_SHIFT;
-	efi_add_memory_map(*(uintptr_t *)mmio_ptr, pages, EFI_MMAP_IO, false);
+	uint64_t addr = *(uintptr_t *)mmio_ptr;
+	uint64_t retaddr;
+
+	retaddr = efi_add_memory_map(addr, pages, EFI_MMAP_IO, false);
+	if (retaddr != addr)
+		return EFI_OUT_OF_RESOURCES;
 
 	newmmio = calloc(1, sizeof(*newmmio));
+	if (!newmmio)
+		return EFI_OUT_OF_RESOURCES;
 	newmmio->ptr = mmio_ptr;
 	newmmio->paddr = *(uintptr_t *)mmio_ptr;
 	newmmio->len = len;
 	list_add_tail(&newmmio->link, &efi_runtime_mmio);
+
+	return EFI_SUCCESS;
 }
 
 /*
@@ -381,6 +429,32 @@ static efi_status_t __efi_runtime EFIAPI efi_invalid_parameter(void)
 	return EFI_INVALID_PARAMETER;
 }
 
+efi_status_t __efi_runtime EFIAPI efi_update_capsule(
+			struct efi_capsule_header **capsule_header_array,
+			efi_uintn_t capsule_count,
+			u64 scatter_gather_list)
+{
+	return EFI_UNSUPPORTED;
+}
+
+efi_status_t __efi_runtime EFIAPI efi_query_capsule_caps(
+			struct efi_capsule_header **capsule_header_array,
+			efi_uintn_t capsule_count,
+			u64 maximum_capsule_size,
+			u32 reset_type)
+{
+	return EFI_UNSUPPORTED;
+}
+
+efi_status_t __efi_runtime EFIAPI efi_query_variable_info(
+			u32 attributes,
+			u64 *maximum_variable_storage_size,
+			u64 *remaining_variable_storage_size,
+			u64 *maximum_variable_size)
+{
+	return EFI_UNSUPPORTED;
+}
+
 struct efi_runtime_services __efi_runtime_data efi_runtime_services = {
 	.hdr = {
 		.signature = EFI_RUNTIME_SERVICES_SIGNATURE,
@@ -394,8 +468,11 @@ struct efi_runtime_services __efi_runtime_data efi_runtime_services = {
 	.set_virtual_address_map = &efi_set_virtual_address_map,
 	.convert_pointer = (void *)&efi_invalid_parameter,
 	.get_variable = efi_get_variable,
-	.get_next_variable = efi_get_next_variable,
+	.get_next_variable_name = efi_get_next_variable_name,
 	.set_variable = efi_set_variable,
 	.get_next_high_mono_count = (void *)&efi_device_error,
 	.reset_system = &efi_reset_system_boottime,
+	.update_capsule = efi_update_capsule,
+	.query_capsule_caps = efi_query_capsule_caps,
+	.query_variable_info = efi_query_variable_info,
 };

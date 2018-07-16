@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2006-2008
  * Texas Instruments.
@@ -6,8 +7,6 @@
  * Nishanth Menon <nm@ti.com>
  *
  * Configuration settings for the TI OMAP3430 Zoom MDK board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -19,7 +18,6 @@
 #include <configs/ti_omap3_common.h>
 
 /* Remove SPL boot option - we do not support that on LDP yet */
-#undef CONFIG_SPL_FRAMEWORK
 
 /* Generic NAND definition conflicts with debug_base */
 #undef CONFIG_SYS_NAND_BASE
@@ -33,11 +31,6 @@
 /*
  * Hardware drivers
  */
-
-/* USB */
-#define CONFIG_USB_MUSB_UDC			1
-#define CONFIG_USB_OMAP3		1
-#define CONFIG_TWL4030_USB		1
 
 /* USB device configuration */
 #define CONFIG_USB_DEVICE		1

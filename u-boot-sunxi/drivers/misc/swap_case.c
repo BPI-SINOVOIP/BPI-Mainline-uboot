@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * PCI emulation device which swaps the case of text
  *
  * Copyright (c) 2014 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -22,7 +21,7 @@
  */
 struct swap_case_platdata {
 	u16 command;
-	u32 bar[2];
+	u32 bar[6];
 };
 
 #define offset_to_barnum(offset)	\

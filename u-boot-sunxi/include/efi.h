@@ -19,12 +19,19 @@
 #include <linux/string.h>
 #include <linux/types.h>
 
-#ifdef CONFIG_EFI_STUB_64BIT
-/* EFI uses the Microsoft ABI which is not the default for GCC */
+/*
+ * EFI on x86_64 uses the Microsoft ABI which is not the default for GCC.
+ *
+ * There are two scenarios for EFI on x86_64: building a 64-bit EFI stub
+ * codes (CONFIG_EFI_STUB_64BIT) and building a 64-bit U-Boot (CONFIG_X86_64).
+ * Either needs to be properly built with the '-m64' compiler flag, and hence
+ * it is enough to only check the compiler provided define __x86_64__ here.
+ */
+#ifdef __x86_64__
 #define EFIAPI __attribute__((ms_abi))
 #else
 #define EFIAPI asmlinkage
-#endif
+#endif /* __x86_64__ */
 
 struct efi_device_path;
 
@@ -32,16 +39,7 @@ typedef struct {
 	u8 b[16];
 } efi_guid_t;
 
-#define EFI_BITS_PER_LONG	BITS_PER_LONG
-
-/*
- * With 64-bit EFI stub, EFI_BITS_PER_LONG has to be 64. EFI_STUB is set
- * in lib/efi/Makefile, when building the stub.
- */
-#if defined(CONFIG_EFI_STUB_64BIT) && defined(EFI_STUB)
-#undef EFI_BITS_PER_LONG
-#define EFI_BITS_PER_LONG	64
-#endif
+#define EFI_BITS_PER_LONG	(sizeof(long) * 8)
 
 /* Bit mask for EFI status code with error */
 #define EFI_ERROR_MASK (1UL << (EFI_BITS_PER_LONG - 1))
@@ -89,12 +87,11 @@ typedef u64 efi_virtual_addr_t;
 typedef void *efi_handle_t;
 
 #define EFI_GUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
-	((efi_guid_t) \
 	{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, \
 		((a) >> 24) & 0xff, \
 		(b) & 0xff, ((b) >> 8) & 0xff, \
 		(c) & 0xff, ((c) >> 8) & 0xff, \
-		(d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) } })
+		(d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) } }
 
 /* Generic EFI table header */
 struct efi_table_hdr {
@@ -242,6 +239,7 @@ struct efi_open_protocol_info_entry {
 enum efi_entry_t {
 	EFIET_END,	/* Signals this is the last (empty) entry */
 	EFIET_MEMORY_MAP,
+	EFIET_GOP_MODE,
 
 	/* Number of entries */
 	EFIET_MEMORY_COUNT,
@@ -296,6 +294,40 @@ struct efi_entry_memmap {
 	u32 desc_size;
 	u64 spare;
 	struct efi_mem_desc desc[];
+};
+
+/**
+ * struct efi_entry_gopmode - a GOP mode table passed to U-Boot
+ *
+ * @fb_base:	EFI's framebuffer base address
+ * @fb_size:	EFI's framebuffer size
+ * @info_size:	GOP mode info structure size
+ * @info:	Start address of the GOP mode info structure
+ */
+struct efi_entry_gopmode {
+	efi_physical_addr_t fb_base;
+	/*
+	 * Not like the ones in 'struct efi_gop_mode' which are 'unsigned
+	 * long', @fb_size and @info_size have to be 'u64' here. As the EFI
+	 * stub codes may have different bit size from the U-Boot payload,
+	 * using 'long' will cause mismatch between the producer (stub) and
+	 * the consumer (payload).
+	 */
+	u64 fb_size;
+	u64 info_size;
+	/*
+	 * We cannot directly use 'struct efi_gop_mode_info info[]' here as
+	 * it causes compiler to complain: array type has incomplete element
+	 * type 'struct efi_gop_mode_info'.
+	 */
+	struct /* efi_gop_mode_info */ {
+		u32 version;
+		u32 width;
+		u32 height;
+		u32 pixel_format;
+		u32 pixel_bitmask[4];
+		u32 pixels_per_scanline;
+	} info[];
 };
 
 static inline struct efi_mem_desc *efi_get_next_mem_desc(

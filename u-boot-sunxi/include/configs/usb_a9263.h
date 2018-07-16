@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2007-2013
  * Stelian Pop <stelian.pop@leadtechdesign.com>
@@ -9,8 +10,6 @@
  *
  * U-Boot image has to be less than 200704 bytes, otherwise at91bootstrap
  * installed on board will not be able to load it properly.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -31,8 +30,6 @@
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
 
-#define CONFIG_SYS_TEXT_BASE		0x23f00000
-
 /*
  * Hardware drivers
  */
@@ -40,9 +37,6 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -94,10 +88,6 @@
 #define CONFIG_BOOTCOMMAND	"nboot 21000000 0"
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0" \
-
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_SYS_LONGHELP
 
 /*
  * Size of malloc() pool

@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Chromium OS cros_ec driver
  *
  * Copyright (c) 2012 The Chromium OS Authors.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -41,8 +40,6 @@ enum {
 	/* Timeout waiting for a synchronous hash to be recomputed */
 	CROS_EC_CMD_HASH_TIMEOUT_MS = 2000,
 };
-
-DECLARE_GLOBAL_DATA_PTR;
 
 void cros_ec_dump_data(const char *name, int cmd, const uint8_t *data, int len)
 {

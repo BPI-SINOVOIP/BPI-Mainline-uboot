@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015 National Instruments
  *
  * (C) Copyright 2015
  * Joe Hershberger <joe.hershberger@ni.com>
- *
- * SPDX-License-Identifier:	GPL-2.0
  */
 
 #include <common.h>
@@ -17,8 +16,6 @@
 #include <dm/uclass-internal.h>
 #include <asm/eth.h>
 #include <test/ut.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 #define DM_TEST_ETH_NUM		4
 

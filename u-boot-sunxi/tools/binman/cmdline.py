@@ -1,7 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0+
 # Copyright (c) 2016 Google, Inc
 # Written by Simon Glass <sjg@chromium.org>
-#
-# SPDX-License-Identifier:      GPL-2.0+
 #
 # Command-line parser for binman
 #
@@ -31,6 +30,8 @@ def ParseArgs(argv):
             help='Add a path to a directory to use for input files')
     parser.add_option('-H', '--full-help', action='store_true',
         default=False, help='Display the README file')
+    parser.add_option('-m', '--map', action='store_true',
+        default=False, help='Output a map file for each image')
     parser.add_option('-O', '--outdir', type='string',
         action='store', help='Path to directory to use for intermediate and '
         'output files')

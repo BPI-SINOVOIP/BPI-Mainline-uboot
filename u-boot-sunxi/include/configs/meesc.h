@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2007-2008
  * Stelian Pop <stelian@popies.net>
@@ -8,8 +9,6 @@
  * esd electronic system design gmbh <www.esd.eu>
  *
  * Configuation settings for the esd MEESC board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -27,7 +26,6 @@
  * Since the linker has to swallow that define, we must use a pure
  * hex number here!
  */
-#define CONFIG_SYS_TEXT_BASE		0x21F00000
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_SLOW_CLOCK	32768	/* 32.768 kHz crystal */
@@ -53,9 +51,6 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /*
  * SDRAM: 1 bank, min 32, max 128 MB
@@ -118,9 +113,6 @@
 #endif
 
 #define CONFIG_SYS_CBSIZE		512
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_AUTO_COMPLETE
 
 /*
  * Size of malloc() pool

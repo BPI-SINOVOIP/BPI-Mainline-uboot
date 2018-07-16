@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2014 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -38,8 +37,6 @@
 
 #define SET_SDHC_MUX_SEL(reg, value)	((reg & 0x0f) | value)
 #define SET_EC_MUX_SEL(reg, value)	((reg & 0xf0) | value)
-DECLARE_GLOBAL_DATA_PTR;
-
 enum {
 	MUX_TYPE_CAN,
 	MUX_TYPE_IIC2,

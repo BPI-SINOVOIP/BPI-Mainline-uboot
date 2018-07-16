@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Simulate an I2C real time clock
  *
  * Copyright (c) 2015 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -27,8 +26,6 @@
 #else
 #define debug_buffer(x, ...)
 #endif
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /**
  * struct sandbox_i2c_rtc_plat_data - platform data for the RTC

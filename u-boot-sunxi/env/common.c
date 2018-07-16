@@ -1,11 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2000-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * (C) Copyright 2001 Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Andreas Heppel <aheppel@sysgo.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -78,7 +77,7 @@ void set_default_env(const char *s)
 			puts(s);
 		}
 	} else {
-		puts("Using default environment\n\n");
+		debug("Using default environment\n");
 	}
 
 	if (himport_r(&env_htab, (char *)default_environment,
@@ -118,33 +117,52 @@ int env_import(const char *buf, int check)
 
 		if (crc32(0, ep->data, ENV_SIZE) != crc) {
 			set_default_env("!bad CRC");
-			return 0;
+			return -EIO;
 		}
 	}
 
 	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', 0, 0,
 			0, NULL)) {
 		gd->flags |= GD_FLG_ENV_READY;
-		return 1;
+		return 0;
 	}
 
 	pr_err("Cannot import environment: errno = %d\n", errno);
 
 	set_default_env("!import failed");
 
-	return 0;
+	return -EIO;
 }
 
 #ifdef CONFIG_SYS_REDUNDAND_ENVIRONMENT
 static unsigned char env_flags;
 
-int env_import_redund(const char *buf1, const char *buf2)
+int env_import_redund(const char *buf1, int buf1_read_fail,
+		      const char *buf2, int buf2_read_fail)
 {
 	int crc1_ok, crc2_ok;
 	env_t *ep, *tmp_env1, *tmp_env2;
 
 	tmp_env1 = (env_t *)buf1;
 	tmp_env2 = (env_t *)buf2;
+
+	if (buf1_read_fail && buf2_read_fail) {
+		puts("*** Error - No Valid Environment Area found\n");
+	} else if (buf1_read_fail || buf2_read_fail) {
+		puts("*** Warning - some problems detected ");
+		puts("reading environment; recovered successfully\n");
+	}
+
+	if (buf1_read_fail && buf2_read_fail) {
+		set_default_env("!bad env area");
+		return -EIO;
+	} else if (!buf1_read_fail && buf2_read_fail) {
+		gd->env_valid = ENV_VALID;
+		return env_import((char *)tmp_env1, 1);
+	} else if (buf1_read_fail && !buf2_read_fail) {
+		gd->env_valid = ENV_REDUND;
+		return env_import((char *)tmp_env2, 1);
+	}
 
 	crc1_ok = crc32(0, tmp_env1->data, ENV_SIZE) ==
 			tmp_env1->crc;
@@ -153,7 +171,7 @@ int env_import_redund(const char *buf1, const char *buf2)
 
 	if (!crc1_ok && !crc2_ok) {
 		set_default_env("!bad CRC");
-		return 0;
+		return -EIO;
 	} else if (crc1_ok && !crc2_ok) {
 		gd->env_valid = ENV_VALID;
 	} else if (!crc1_ok && crc2_ok) {
@@ -208,6 +226,7 @@ void env_relocate(void)
 {
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
 	env_reloc();
+	env_fix_drivers();
 	env_htab.change_ok += gd->reloc_off;
 #endif
 	if (gd->env_valid == ENV_INVALID) {

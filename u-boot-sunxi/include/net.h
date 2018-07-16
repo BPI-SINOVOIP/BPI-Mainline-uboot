@@ -1,9 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  *	LiMon Monitor (LiMon) - Network.
  *
  *	Copyright 1994 - 2000 Neil Russell.
  *	(See License)
- *	SPDX-License-Identifier:	GPL-2.0
  *
  * History
  *	9/16/00	  bor  adapted to TQM823L/STK8xxL board, RARP/TFTP boot added
@@ -238,9 +238,6 @@ void eth_try_another(int first_restart);	/* Change the device */
 void eth_set_current(void);		/* set nterface to ethcur var */
 
 int eth_get_dev_index(void);		/* get the device index */
-void eth_parse_enetaddr(const char *addr, uchar *enetaddr);
-int eth_env_get_enetaddr(const char *name, uchar *enetaddr);
-int eth_env_set_enetaddr(const char *name, const uchar *enetaddr);
 
 /**
  * eth_env_set_enetaddr_by_index() - set the MAC address environment variable
@@ -347,6 +344,7 @@ struct vlan_ethernet_hdr {
 
 #define PROT_IP		0x0800		/* IP protocol			*/
 #define PROT_ARP	0x0806		/* IP ARP protocol		*/
+#define PROT_WOL	0x0842		/* ether-wake WoL protocol	*/
 #define PROT_RARP	0x8035		/* IP ARP protocol		*/
 #define PROT_VLAN	0x8100		/* IEEE 802.1q protocol		*/
 #define PROT_IPV6	0x86dd		/* IPv6 over bluebook		*/
@@ -538,10 +536,12 @@ extern int		net_restart_wrap;	/* Tried all network devices */
 
 enum proto_t {
 	BOOTP, RARP, ARP, TFTPGET, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP,
-	TFTPSRV, TFTPPUT, LINKLOCAL
+	TFTPSRV, TFTPPUT, LINKLOCAL, FASTBOOT, WOL
 };
 
 extern char	net_boot_file_name[1024];/* Boot File name */
+/* Indicates whether the file name was specified on the command line */
+extern bool	net_boot_file_name_explicit;
 /* The actual transferred size of the bootfile (in bytes) */
 extern u32	net_boot_file_size;
 /* Boot file size in blocks as reported by the DHCP server */
@@ -676,7 +676,7 @@ int net_send_udp_packet(uchar *ether, struct in_addr dest, int dport,
 /* Processes a received packet */
 void net_process_received_packet(uchar *in_packet, int len);
 
-#ifdef CONFIG_NETCONSOLE
+#if defined(CONFIG_NETCONSOLE) && !defined(CONFIG_SPL_BUILD)
 void nc_start(void);
 int nc_input_packet(uchar *pkt, struct in_addr src_ip, unsigned dest_port,
 	unsigned src_port, unsigned len);
@@ -684,7 +684,7 @@ int nc_input_packet(uchar *pkt, struct in_addr src_ip, unsigned dest_port,
 
 static __always_inline int eth_is_on_demand_init(void)
 {
-#ifdef CONFIG_NETCONSOLE
+#if defined(CONFIG_NETCONSOLE) && !defined(CONFIG_SPL_BUILD)
 	extern enum proto_t net_loop_last_protocol;
 
 	return net_loop_last_protocol != NETCONS;
@@ -695,7 +695,7 @@ static __always_inline int eth_is_on_demand_init(void)
 
 static inline void eth_set_last_protocol(int protocol)
 {
-#ifdef CONFIG_NETCONSOLE
+#if defined(CONFIG_NETCONSOLE) && !defined(CONFIG_SPL_BUILD)
 	extern enum proto_t net_loop_last_protocol;
 
 	net_loop_last_protocol = protocol;

@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2010 Heiko Schocher <hs@denx.de>
  *
  * based on:
  * Copyright (C) 2009 Ilya Yanok <yanok@emcraft.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __IMX27LITE_COMMON_CONFIG_H
@@ -15,8 +14,6 @@
  */
 #define CONFIG_MX27
 #define CONFIG_MX27_CLK32	32768		/* OSC32K frequency */
-
-#define CONFIG_SYS_TEXT_BASE		0xc0000000
 
 #define CONFIG_CMDLINE_TAG		1	/* enable passing of ATAGs */
 #define CONFIG_SETUP_MEMORY_TAGS	1
@@ -84,7 +81,6 @@
  */
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE	UART1_BASE
-#define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 
 /*
  * Flash & Environment
@@ -132,18 +128,11 @@
 #define CONFIG_MXC_NAND_HWECC
 
 /*
- * GPIO
- */
-#define CONFIG_MXC_GPIO
-
-/*
  * U-Boot general configuration
  */
 #define CONFIG_SYS_CBSIZE	1024	/* Console I/O Buffer Size  */
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_SYS_LONGHELP
 
 #define CONFIG_LOADADDR		0xa0800000	/* loadaddr env var */
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_LOADADDR
@@ -160,9 +149,9 @@
 		" console=ttymxc0,${baudrate}\0"			\
 	"addmtd=setenv bootargs ${bootargs} ${mtdparts}\0"		\
 	"addmisc=setenv bootargs ${bootargs}\0"				\
-	"u-boot=" __stringify(CONFIG_HOSTNAME) "/u-boot.bin\0"		\
+	"u-boot=" CONFIG_HOSTNAME "/u-boot.bin\0"		\
 	"kernel_addr_r=a0800000\0"					\
-	"bootfile=" __stringify(CONFIG_HOSTNAME) "/uImage\0"		\
+	"bootfile=" CONFIG_HOSTNAME "/uImage\0"		\
 	"rootpath=/opt/eldk-4.2-arm/arm\0"				\
 	"net_nfs=tftp ${kernel_addr_r} ${bootfile};"			\
 		"run nfsargs addip addtty addmtd addmisc;"		\

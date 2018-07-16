@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * R/O (V)FAT 12/16/32 filesystem implementation by Marcus Sundberg
  *
  * 2002-07-28 - rjones@nexus-tech.net - ported to ppcboot v1.1.6
  * 2003-03-10 - kharris@nexus-tech.net - ported to u-boot
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _FAT_H_
@@ -13,7 +12,6 @@
 #include <asm/byteorder.h>
 #include <fs.h>
 
-#define CONFIG_SUPPORT_VFAT
 /* Maximum Long File Name length supported here is 128 UTF-16 code units */
 #define VFAT_MAXLEN_BYTES	256 /* Maximum LFN buffer in bytes */
 #define VFAT_MAXSEQ		9   /* Up to 9 of 13 2-byte UTF-16 entries */
@@ -182,7 +180,7 @@ static inline u32 clust_to_sect(fsdata *fsdata, u32 clust)
 	return fsdata->data_begin + clust * fsdata->clust_size;
 }
 
-static inline u32 sect_to_clust(fsdata *fsdata, u32 sect)
+static inline u32 sect_to_clust(fsdata *fsdata, int sect)
 {
 	return (sect - fsdata->data_begin) / fsdata->clust_size;
 }

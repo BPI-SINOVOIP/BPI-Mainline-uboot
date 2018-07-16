@@ -1,9 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0+
 #
 # Copyright (C) 2014, Simon Glass <sjg@chromium.org>
 # Copyright (C) 2014, Bin Meng <bmeng.cn@gmail.com>
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
 
 U-Boot on x86
 =============
@@ -46,7 +44,7 @@ Build Instructions for U-Boot as coreboot payload
 Building U-Boot as a coreboot payload is just like building U-Boot for targets
 on other architectures, like below:
 
-$ make coreboot-x86_defconfig
+$ make coreboot_defconfig
 $ make all
 
 Note this default configuration will build a U-Boot payload for the QEMU board.
@@ -258,7 +256,9 @@ the board manual. The SPI-0 flash should have flash descriptor plus ME firmware
 and SPI-1 flash is used to store U-Boot. For convenience, the complete 8MB SPI-0
 flash image is included in the FSP package (named Rom00_8M_MB_PPT.bin). Program
 this image to the SPI-0 flash according to the board manual just once and we are
-all set. For programming U-Boot we just need to program SPI-1 flash.
+all set. For programming U-Boot we just need to program SPI-1 flash. Since the
+default u-boot.rom image for this board is set to 2MB, it should be programmed
+to the last 2MB of the 8MB chip, address range [600000, 7FFFFF].
 
 ---
 
@@ -1134,18 +1134,43 @@ the "Power" submenu from the Windows start menu.
 EFI Support
 -----------
 U-Boot supports booting as a 32-bit or 64-bit EFI payload, e.g. with UEFI.
-This is enabled with CONFIG_EFI_STUB. U-Boot can also run as an EFI
-application, with CONFIG_EFI_APP. The CONFIG_EFI_LOADER option, where U-Booot
-provides an EFI environment to the kernel (i.e. replaces UEFI completely but
-provides the same EFI run-time services) is not currently supported on x86.
+This is enabled with CONFIG_EFI_STUB to boot from both 32-bit and 64-bit
+UEFI BIOS. U-Boot can also run as an EFI application, with CONFIG_EFI_APP.
+The CONFIG_EFI_LOADER option, where U-Boot provides an EFI environment to
+the kernel (i.e. replaces UEFI completely but provides the same EFI run-time
+services) is supported too. For example, we can even use 'bootefi' command
+to load a 'u-boot-payload.efi', see below test logs on QEMU.
 
-See README.efi for details of EFI support in U-Boot.
+  => load ide 0 3000000 u-boot-payload.efi
+  489787 bytes read in 138 ms (3.4 MiB/s)
+  => bootefi 3000000
+  Scanning disk ide.blk#0...
+  Found 2 disks
+  WARNING: booting without device tree
+  ## Starting EFI application at 03000000 ...
+  U-Boot EFI Payload
+
+
+  U-Boot 2018.07-rc2 (Jun 23 2018 - 17:12:58 +0800)
+
+  CPU: x86_64, vendor AMD, device 663h
+  DRAM:  2 GiB
+  MMC:
+  Video: 1024x768x32
+  Model: EFI x86 Payload
+  Net:   e1000: 52:54:00:12:34:56
+
+  Warning: e1000#0 using MAC address from ROM
+  eth0: e1000#0
+  No controllers found
+  Hit any key to stop autoboot:  0
+
+See README.u-boot_on_efi and README.uefi for details of EFI support in U-Boot.
 
 64-bit Support
 --------------
 U-Boot supports booting a 64-bit kernel directly and is able to change to
-64-bit mode to do so. It also supports (with CONFIG_EFI_STUB) booting from
-both 32-bit and 64-bit UEFI. However, U-Boot itself is currently always built
+64-bit mode to do so. However, U-Boot itself is currently always built
 in 32-bit mode. Some access to the full memory range is provided with
 arch_phys_memset().
 

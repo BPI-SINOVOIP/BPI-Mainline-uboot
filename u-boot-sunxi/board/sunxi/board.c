@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2012-2013 Henrik Nordstrom <henrik@henriknordstrom.net>
  * (C) Copyright 2013 Luke Kenneth Casson Leighton <lkcl@lkcl.net>
@@ -7,13 +8,14 @@
  * Tom Cubie <tangliang@allwinnertech.com>
  *
  * Some board init for the Allwinner A10-evb board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <dm.h>
 #include <mmc.h>
 #include <axp_pmic.h>
+#include <generic-phy.h>
+#include <phy-sun4i-usb.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/cpu.h>
 #include <asm/arch/display.h>
@@ -21,7 +23,6 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
 #include <asm/arch/spl.h>
-#include <asm/arch/usb_phy.h>
 #ifndef CONFIG_ARM64
 #include <asm/armv7.h>
 #endif
@@ -29,7 +30,7 @@
 #include <asm/io.h>
 #include <crc.h>
 #include <environment.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <nand.h>
 #include <net.h>
 #include <spl.h>
@@ -173,6 +174,22 @@ void i2c_init_board(void)
 #endif
 }
 
+#if defined(CONFIG_ENV_IS_IN_MMC) && defined(CONFIG_ENV_IS_IN_FAT)
+enum env_location env_get_location(enum env_operation op, int prio)
+{
+	switch (prio) {
+	case 0:
+		return ENVL_FAT;
+
+	case 1:
+		return ENVL_MMC;
+
+	default:
+		return ENVL_UNKNOWN;
+	}
+}
+#endif
+
 /* add board specific code here */
 int board_init(void)
 {
@@ -270,10 +287,9 @@ static void nand_clock_setup(void)
 		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
 
 	setbits_le32(&ccm->ahb_gate0, (CLK_GATE_OPEN << AHB_GATE_OFFSET_NAND0));
-#ifdef CONFIG_MACH_SUN9I
-	setbits_le32(&ccm->ahb_gate1, (1 << AHB_GATE_OFFSET_DMA));
-#else
-	setbits_le32(&ccm->ahb_gate0, (1 << AHB_GATE_OFFSET_DMA));
+#if defined CONFIG_MACH_SUN6I || defined CONFIG_MACH_SUN8I || \
+    defined CONFIG_MACH_SUN9I || defined CONFIG_MACH_SUN50I
+	setbits_le32(&ccm->ahb_reset0_cfg, (1 << AHB_GATE_OFFSET_NAND0));
 #endif
 	setbits_le32(&ccm->nand0_clk_cfg, CCM_NAND_CTRL_ENABLE | AHB_DIV_1);
 }
@@ -581,7 +597,35 @@ void sunxi_board_init(void)
 #ifdef CONFIG_USB_GADGET
 int g_dnl_board_usb_cable_connected(void)
 {
-	return sunxi_usb_phy_vbus_detect(0);
+	struct udevice *dev;
+	struct phy phy;
+	int ret;
+
+	ret = uclass_get_device(UCLASS_USB_DEV_GENERIC, 0, &dev);
+	if (ret) {
+		pr_err("%s: Cannot find USB device\n", __func__);
+		return ret;
+	}
+
+	ret = generic_phy_get_by_name(dev, "usb", &phy);
+	if (ret) {
+		pr_err("failed to get %s USB PHY\n", dev->name);
+		return ret;
+	}
+
+	ret = generic_phy_init(&phy);
+	if (ret) {
+		pr_err("failed to init %s USB PHY\n", dev->name);
+		return ret;
+	}
+
+	ret = sun4i_usb_phy_vbus_detect(&phy);
+	if (ret == 1) {
+		pr_err("A charger is plugged into the OTG\n");
+		return -ENODEV;
+	}
+
+	return ret;
 }
 #endif
 
@@ -728,12 +772,6 @@ int misc_init_r(void)
 	}
 
 	setup_environment(gd->fdt_blob);
-
-#ifndef CONFIG_MACH_SUN9I
-	ret = sunxi_usb_phy_probe();
-	if (ret)
-		return ret;
-#endif
 
 #ifdef CONFIG_USB_ETHER
 	usb_ether_init();

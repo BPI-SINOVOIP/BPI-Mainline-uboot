@@ -30,7 +30,7 @@ config STI_RESET
 
 config STM32_RESET
 	bool "Enable the STM32 reset"
-	depends on STM32
+	depends on STM32 || ARCH_STM32MP
 	help
 	  Support for reset controllers on STMicroelectronics STM32 family SoCs.
 	  This resset driver is compatible with STM32 F4/F7 and H7 SoCs.
@@ -73,5 +73,29 @@ config AST2500_RESET
 	  watchdog to reset different peripherals and thus only supports
 	  resets that are supported by watchdog. The main limitation though
 	  is that some reset signals, like I2C or MISC reset multiple devices.
+
+config RESET_ROCKCHIP
+	bool "Reset controller driver for Rockchip SoCs"
+	depends on DM_RESET && ARCH_ROCKCHIP && CLK
+	default y
+	help
+	  Support for reset controller on rockchip SoC. The main limitation
+	  though is that some reset signals, like I2C or MISC reset multiple
+	  devices.
+
+config RESET_MESON
+	bool "Reset controller driver for Amlogic Meson SoCs"
+	depends on DM_RESET && ARCH_MESON
+	imply REGMAP
+	default y
+	help
+	  Support for reset controller on Amlogic Meson SoC.
+
+config RESET_SOCFPGA
+	bool "Reset controller driver for SoCFPGA"
+	depends on DM_RESET && ARCH_SOCFPGA
+	default y
+	help
+	  Support for reset controller on SoCFPGA platform.
 
 endmenu

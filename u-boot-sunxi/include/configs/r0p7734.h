@@ -1,25 +1,20 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Renesas Solutions r0p7734 board
  *
  * Copyright (C) 2010, 2011 Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __R0P7734_H
 #define __R0P7734_H
 
 #define CONFIG_CPU_SH7734	1
-#define CONFIG_R0P7734		1
 #define CONFIG_400MHZ_MODE	1
-
-#define CONFIG_SYS_TEXT_BASE 0x8FFC0000
 
 #define CONFIG_DISPLAY_BOARDINFO
 #undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* Ether */
-#define CONFIG_SH_ETHER 1
 #define CONFIG_SH_ETHER_USE_PORT (0)
 #define CONFIG_SH_ETHER_PHY_ADDR (0x0)
 #define CONFIG_PHY_SMSC 1
@@ -29,7 +24,6 @@
 #define CONFIG_SH_ETHER_PHY_MODE PHY_INTERFACE_MODE_MII
 
 /* undef to save memory	*/
-#define CONFIG_SYS_LONGHELP
 /* List of legal baudrate settings for this board */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 115200 }
 
@@ -47,7 +41,6 @@
 #define CONFIG_SYS_MEMTEST_START (CONFIG_SYS_SDRAM_BASE)
 #define CONFIG_SYS_MEMTEST_END	 (CONFIG_SYS_MEMTEST_START + 100 * 1024 * 1024)
 /* Enable alternate, more extensive, memory test */
-#undef  CONFIG_SYS_ALT_MEMTEST
 /* Scratch address used by the alternate memory test */
 #undef  CONFIG_SYS_MEMTEST_SCRATCH
 

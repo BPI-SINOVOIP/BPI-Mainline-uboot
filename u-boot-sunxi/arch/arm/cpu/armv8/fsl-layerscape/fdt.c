@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2014-2015 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <efi_loader.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <fdt_support.h>
 #include <phy.h>
 #ifdef CONFIG_FSL_LSCH3
@@ -26,6 +25,8 @@
 #ifdef CONFIG_ARMV8_SEC_FIRMWARE_SUPPORT
 #include <asm/armv8/sec_firmware.h>
 #endif
+#include <asm/arch/speed.h>
+#include <fsl_qbman.h>
 
 int fdt_fixup_phy_connection(void *blob, int offset, phy_interface_t phyc)
 {
@@ -413,8 +414,8 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 		ccsr_sec_t __iomem *sec;
 
 #ifdef CONFIG_ARMV8_SEC_FIRMWARE_SUPPORT
-		if (fdt_fixup_kaslr(blob))
-			fdt_fixup_remove_jr(blob);
+		fdt_fixup_remove_jr(blob);
+		fdt_fixup_kaslr(blob);
 #endif
 
 		sec = (void __iomem *)CONFIG_SYS_FSL_SEC_ADDR;
@@ -440,6 +441,13 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 
 #ifdef CONFIG_FSL_ESDHC
 	fdt_fixup_esdhc(blob, bd);
+#endif
+
+#ifdef CONFIG_SYS_DPAA_QBMAN
+	fdt_fixup_bportals(blob);
+	fdt_fixup_qportals(blob);
+	do_fixup_by_compat_u32(blob, "fsl,qman",
+			       "clock-frequency", get_qman_freq(), 1);
 #endif
 
 #ifdef CONFIG_SYS_DPAA_FMAN

@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2014 Broadcom Corporation.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __BCM_EP_BOARD_H
@@ -53,9 +52,6 @@
 #define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE
 
 /* version string, parser, etc */
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_SYS_LONGHELP
 
 #define CONFIG_MX_CYCLIC
 

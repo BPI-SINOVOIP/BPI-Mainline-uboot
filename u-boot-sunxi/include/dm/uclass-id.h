@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2013 Google, Inc
  *
  * (C) Copyright 2012
  * Pavel Herrmann <morpheus.ibis@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _DM_UCLASS_ID_H
@@ -19,6 +18,7 @@ enum uclass_id {
 	UCLASS_TEST_FDT,
 	UCLASS_TEST_BUS,
 	UCLASS_TEST_PROBE,
+	UCLASS_TEST_DUMMY,
 	UCLASS_SPI_EMUL,	/* sandbox SPI device emulator */
 	UCLASS_I2C_EMUL,	/* sandbox I2C device emulator */
 	UCLASS_PCI_EMUL,	/* sandbox PCI device emulator */
@@ -34,6 +34,7 @@ enum uclass_id {
 	UCLASS_CROS_EC,		/* Chrome OS EC */
 	UCLASS_DISPLAY,		/* Display (e.g. DisplayPort, HDMI) */
 	UCLASS_DMA,		/* Direct Memory Access */
+	UCLASS_EFI,		/* EFI managed devices */
 	UCLASS_ETH,		/* Ethernet device */
 	UCLASS_GPIO,		/* Bank of general-purpose I/O pins */
 	UCLASS_FIRMWARE,	/* Firmware */

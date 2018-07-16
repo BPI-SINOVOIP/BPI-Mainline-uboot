@@ -1,18 +1,14 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2013, Google Inc.
  *
  * Copyright (C) 2011
  * Corscience GmbH & Co. KG - Simon Schwarz <schwarz@corscience.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #ifndef ARM_BOOTM_H
 #define ARM_BOOTM_H
 
 extern void udc_disconnect(void);
-extern void sunxi_dw_hdmi_disable(void);
 
 #if defined(CONFIG_SETUP_MEMORY_TAGS) || \
 		defined(CONFIG_CMDLINE_TAG) || \

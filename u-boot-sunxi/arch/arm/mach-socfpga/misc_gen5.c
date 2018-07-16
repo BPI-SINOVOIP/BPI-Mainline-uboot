@@ -1,14 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  *  Copyright (C) 2012-2017 Altera Corporation <www.altera.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <errno.h>
 #include <fdtdec.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <altera.h>
 #include <miiphy.h>
 #include <netdev.h>
@@ -30,21 +29,16 @@ static struct pl310_regs *const pl310 =
 	(struct pl310_regs *)CONFIG_SYS_PL310_BASE;
 static struct socfpga_system_manager *sysmgr_regs =
 	(struct socfpga_system_manager *)SOCFPGA_SYSMGR_ADDRESS;
-static struct socfpga_reset_manager *reset_manager_base =
-	(struct socfpga_reset_manager *)SOCFPGA_RSTMGR_ADDRESS;
 static struct nic301_registers *nic301_regs =
 	(struct nic301_registers *)SOCFPGA_L3REGS_ADDRESS;
 static struct scu_registers *scu_regs =
 	(struct scu_registers *)SOCFPGA_MPUSCU_ADDRESS;
-static struct socfpga_sdr_ctrl *sdr_ctrl =
-	(struct socfpga_sdr_ctrl *)SDR_CTRLGRP_ADDRESS;
 
 /*
  * DesignWare Ethernet initialization
  */
 #ifdef CONFIG_ETH_DESIGNWARE
-void dwmac_deassert_reset(const unsigned int of_reset_id,
-				 const u32 phymode)
+static void gen5_dwmac_reset(const u8 of_reset_id, const u8 phymode)
 {
 	u32 physhift, reset;
 
@@ -68,71 +62,13 @@ void dwmac_deassert_reset(const unsigned int of_reset_id,
 	socfpga_per_reset(reset, 0);
 }
 
-static u32 dwmac_phymode_to_modereg(const char *phymode, u32 *modereg)
-{
-	if (!phymode)
-		return -EINVAL;
-
-	if (!strcmp(phymode, "mii") || !strcmp(phymode, "gmii")) {
-		*modereg = SYSMGR_EMACGRP_CTRL_PHYSEL_ENUM_GMII_MII;
-		return 0;
-	}
-
-	if (!strcmp(phymode, "rgmii")) {
-		*modereg = SYSMGR_EMACGRP_CTRL_PHYSEL_ENUM_RGMII;
-		return 0;
-	}
-
-	if (!strcmp(phymode, "rmii")) {
-		*modereg = SYSMGR_EMACGRP_CTRL_PHYSEL_ENUM_RMII;
-		return 0;
-	}
-
-	return -EINVAL;
-}
-
 static int socfpga_eth_reset(void)
 {
-	const void *fdt = gd->fdt_blob;
-	struct fdtdec_phandle_args args;
-	const char *phy_mode;
-	u32 phy_modereg;
-	int nodes[2];	/* Max. two GMACs */
-	int ret, count;
-	int i, node;
-
-	/* Put both GMACs into RESET state. */
+	/* Put all GMACs into RESET state. */
 	socfpga_per_reset(SOCFPGA_RESET(EMAC0), 1);
 	socfpga_per_reset(SOCFPGA_RESET(EMAC1), 1);
-
-	count = fdtdec_find_aliases_for_id(fdt, "ethernet",
-					   COMPAT_ALTERA_SOCFPGA_DWMAC,
-					   nodes, ARRAY_SIZE(nodes));
-	for (i = 0; i < count; i++) {
-		node = nodes[i];
-		if (node <= 0)
-			continue;
-
-		ret = fdtdec_parse_phandle_with_args(fdt, node, "resets",
-						     "#reset-cells", 1, 0,
-						     &args);
-		if (ret || (args.args_count != 1)) {
-			debug("GMAC%i: Failed to parse DT 'resets'!\n", i);
-			continue;
-		}
-
-		phy_mode = fdt_getprop(fdt, node, "phy-mode", NULL);
-		ret = dwmac_phymode_to_modereg(phy_mode, &phy_modereg);
-		if (ret) {
-			debug("GMAC%i: Failed to parse DT 'phy-mode'!\n", i);
-			continue;
-		}
-
-		dwmac_deassert_reset(args.args[0], phy_modereg);
-	}
-
-	return 0;
-}
+	return socfpga_eth_reset_common(gen5_dwmac_reset);
+};
 #else
 static int socfpga_eth_reset(void)
 {
@@ -269,12 +205,8 @@ int arch_early_init_r(void)
 	setbits_le32(&scu_regs->sacr, 0xfff);
 
 	/* Configure the L2 controller to make SDRAM start at 0 */
-#ifdef CONFIG_SOCFPGA_VIRTUAL_TARGET
-	writel(0x2, &nic301_regs->remap);
-#else
 	writel(0x1, &nic301_regs->remap);	/* remap.mpuzero */
 	writel(0x1, &pl310->pl310_addr_filter_start);
-#endif
 
 	/* Add device descriptor to FPGA device table */
 	socfpga_fpga_add();
@@ -291,6 +223,12 @@ int arch_early_init_r(void)
 
 	return 0;
 }
+
+#ifndef CONFIG_SPL_BUILD
+static struct socfpga_reset_manager *reset_manager_base =
+	(struct socfpga_reset_manager *)SOCFPGA_RSTMGR_ADDRESS;
+static struct socfpga_sdr_ctrl *sdr_ctrl =
+	(struct socfpga_sdr_ctrl *)SDR_CTRLGRP_ADDRESS;
 
 static void socfpga_sdram_apply_static_cfg(void)
 {
@@ -321,7 +259,7 @@ static void socfpga_sdram_apply_static_cfg(void)
 	: : "r"(val), "r"(&sdr_ctrl->static_cfg) : "memory", "cc");
 }
 
-int do_bridge(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_bridge(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if (argc != 2)
 		return CMD_RET_USAGE;
@@ -357,3 +295,4 @@ U_BOOT_CMD(
 	"bridge disable - Enable HPS-to-FPGA, FPGA-to-HPS, LWHPS-to-FPGA bridges\n"
 	""
 );
+#endif

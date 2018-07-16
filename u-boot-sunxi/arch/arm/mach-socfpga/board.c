@@ -1,14 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Altera SoCFPGA common board code
  *
  * Copyright (C) 2015 Marek Vasut <marex@denx.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <errno.h>
+#include <fdtdec.h>
 #include <asm/arch/reset_manager.h>
+#include <asm/arch/clock_manager.h>
+#include <asm/arch/misc.h>
 #include <asm/io.h>
 
 #include <usb.h>
@@ -25,6 +27,21 @@ int board_init(void)
 {
 	/* Address of boot parameters for ATAG (if ATAG is used) */
 	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
+
+#if defined(CONFIG_TARGET_SOCFPGA_ARRIA10)
+	/* configuring the clock based on handoff */
+	cm_basic_init(gd->fdt_blob);
+
+	/* Add device descriptor to FPGA device table */
+	socfpga_fpga_add();
+#endif
+
+	return 0;
+}
+
+int dram_init_banksize(void)
+{
+	fdtdec_setup_memory_banksize();
 
 	return 0;
 }

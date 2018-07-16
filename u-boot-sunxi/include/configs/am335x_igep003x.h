@@ -22,12 +22,6 @@
 
 #define CONFIG_ENV_SIZE			(96 << 10)	/*  96 KiB */
 
-/* Make the verbose messages from UBI stop printing */
-#define CONFIG_UBI_SILENCE_MSG
-#define CONFIG_UBIFS_SILENCE_MSG
-
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
@@ -107,7 +101,6 @@
 
 /* NS16550 Configuration */
 #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* UART0 */
-#define CONFIG_CONS_INDEX		1
 
 /* Ethernet support */
 #define CONFIG_PHY_SMSC

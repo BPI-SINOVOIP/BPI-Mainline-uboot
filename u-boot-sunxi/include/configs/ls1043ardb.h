@@ -1,19 +1,12 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2015 Freescale Semiconductor
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __LS1043ARDB_H__
 #define __LS1043ARDB_H__
 
 #include "ls1043a_common.h"
-
-#if defined(CONFIG_NAND_BOOT) || defined(CONFIG_SD_BOOT)
-#define CONFIG_SYS_TEXT_BASE		0x82000000
-#else
-#define CONFIG_SYS_TEXT_BASE		0x60100000
-#endif
 
 #define CONFIG_SYS_CLK_FREQ		100000000
 #define CONFIG_DDR_CLK_FREQ		100000000

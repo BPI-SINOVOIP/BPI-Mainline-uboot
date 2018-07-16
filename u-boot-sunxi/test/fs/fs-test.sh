@@ -1,9 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0+
 #
 # (C) Copyright 2014 Suriyan Ramasami
-#
-#  SPDX-License-Identifier:	GPL-2.0+
-#
 
 # Invoke this test script from U-Boot base directory as ./test/fs/fs-test.sh
 # It currently tests the fs/sb and native commands for ext4 and fat partitions
@@ -225,6 +223,8 @@ setenv bind 'if test "\$sb" != sb; then sb bind 0 "$1"; fi'
 run bind
 # Test Case 1 - ls
 ${PREFIX}ls host${SUFFIX} $6
+# In addition, test with a nonexistent directory to see if we crash.
+${PREFIX}ls host${SUFFIX} invalid_d
 #
 # We want ${PREFIX}size host 0:0 $3 for host commands and
 # sb size hostfs - $3 for hostfs commands.

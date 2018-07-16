@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2011-2012
  * Pali Rohár <pali.rohar@gmail.com>
@@ -12,8 +13,6 @@
  * Syed Mohammed Khasim <x0khasim@ti.com>
  *
  * Configuration settings for the Nokia RX-51 aka N900.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -31,7 +30,6 @@
  * NOLO loading boot image to random place, so it doesn't really
  * matter what we set this to. We have to copy u-boot to this address
  */
-#define CONFIG_SYS_TEXT_BASE	0x80008000
 
 #include <asm/arch/cpu.h>		/* get chip and board defs */
 #include <asm/arch/omap.h>
@@ -74,19 +72,12 @@
 /*
  * select serial console configuration
  */
-#define CONFIG_CONS_INDEX		3
 #define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
 #define CONFIG_SERIAL3			3		/* UART3 on RX-51 */
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_SYS_BAUDRATE_TABLE { 4800, 9600, 19200, 38400, 57600, 115200 }
-
-/* USB */
-#define CONFIG_USB_MUSB_UDC
-#define CONFIG_USB_MUSB_HCD
-#define CONFIG_USB_OMAP3
-#define CONFIG_TWL4030_USB
 
 /* USB device configuration */
 #define CONFIG_USB_DEVICE
@@ -97,12 +88,7 @@
 
 /* commands to include */
 
-#define CONFIG_CMDLINE_EDITING		/* add command line history */
-#define CONFIG_AUTO_COMPLETE		/* add autocompletion support */
-
 #define CONFIG_SYS_I2C
-#define CONFIG_SYS_OMAP24_I2C_SPEED	100000
-#define CONFIG_SYS_OMAP24_I2C_SLAVE	1
 
 /*
  * TWL4030
@@ -320,7 +306,6 @@ int rx51_kp_getc(struct stdio_dev *sdev);
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP			/* undef to save memory */
 
 #define CONFIG_SYS_MEMTEST_START	(OMAP34XX_SDRC_CS0)
 #define CONFIG_SYS_MEMTEST_END		(OMAP34XX_SDRC_CS0 + 0x01F00000)/*31MB*/

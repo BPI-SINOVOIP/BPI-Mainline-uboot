@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2010
  * Texas Instruments, <www.ti.com>
  *
  * Aneesh V <aneesh@ti.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -20,6 +19,7 @@
 #include <dm/root.h>
 #include <linux/compiler.h>
 #include <fdt_support.h>
+#include <bootcount.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -127,8 +127,14 @@ void spl_set_header_raw_uboot(struct spl_image_info *spl_image)
 	ulong u_boot_pos = binman_sym(ulong, u_boot_any, pos);
 
 	spl_image->size = CONFIG_SYS_MONITOR_LEN;
-	if (u_boot_pos != BINMAN_SYM_MISSING) {
-		/* biman does not support separate entry addresses at present */
+
+	/*
+	 * Binman error cases: address of the end of the previous region or the
+	 * start of the image's entry area (usually 0) if there is no previous
+	 * region.
+	 */
+	if (u_boot_pos && u_boot_pos != BINMAN_SYM_MISSING) {
+		/* Binman does not support separated entry addresses */
 		spl_image->entry_point = u_boot_pos;
 		spl_image->load_addr = u_boot_pos;
 	} else {
@@ -139,9 +145,84 @@ void spl_set_header_raw_uboot(struct spl_image_info *spl_image)
 	spl_image->name = "U-Boot";
 }
 
+#ifdef CONFIG_SPL_LOAD_FIT_FULL
+/* Parse and load full fitImage in SPL */
+static int spl_load_fit_image(struct spl_image_info *spl_image,
+			      const struct image_header *header)
+{
+	bootm_headers_t images;
+	const char *fit_uname_config = NULL;
+	const char *fit_uname_fdt = FIT_FDT_PROP;
+	const char *uname;
+	ulong fw_data = 0, dt_data = 0, img_data = 0;
+	ulong fw_len = 0, dt_len = 0, img_len = 0;
+	int idx, conf_noffset;
+	int ret;
+
+#ifdef CONFIG_SPL_FIT_SIGNATURE
+	images.verify = 1;
+#endif
+	ret = fit_image_load(&images, (ulong)header,
+			     NULL, &fit_uname_config,
+			     IH_ARCH_DEFAULT, IH_TYPE_STANDALONE, -1,
+			     FIT_LOAD_REQUIRED, &fw_data, &fw_len);
+	if (ret < 0)
+		return ret;
+
+	spl_image->size = fw_len;
+	spl_image->entry_point = fw_data;
+	spl_image->load_addr = fw_data;
+	spl_image->os = IH_OS_U_BOOT;
+	spl_image->name = "U-Boot";
+
+	debug("spl: payload image: %.*s load addr: 0x%lx size: %d\n",
+	      (int)sizeof(spl_image->name), spl_image->name,
+		spl_image->load_addr, spl_image->size);
+
+#ifdef CONFIG_SPL_FIT_SIGNATURE
+	images.verify = 1;
+#endif
+	fit_image_load(&images, (ulong)header,
+		       &fit_uname_fdt, &fit_uname_config,
+		       IH_ARCH_DEFAULT, IH_TYPE_FLATDT, -1,
+		       FIT_LOAD_OPTIONAL, &dt_data, &dt_len);
+
+	conf_noffset = fit_conf_get_node((const void *)header,
+					 fit_uname_config);
+	if (conf_noffset <= 0)
+		return 0;
+
+	for (idx = 0;
+	     uname = fdt_stringlist_get((const void *)header, conf_noffset,
+					FIT_LOADABLE_PROP, idx,
+				NULL), uname;
+	     idx++)
+	{
+#ifdef CONFIG_SPL_FIT_SIGNATURE
+		images.verify = 1;
+#endif
+		ret = fit_image_load(&images, (ulong)header,
+				     &uname, &fit_uname_config,
+				     IH_ARCH_DEFAULT, IH_TYPE_LOADABLE, -1,
+				     FIT_LOAD_OPTIONAL_NON_ZERO,
+				     &img_data, &img_len);
+		if (ret < 0)
+			return ret;
+	}
+
+	return 0;
+}
+#endif
+
 int spl_parse_image_header(struct spl_image_info *spl_image,
 			   const struct image_header *header)
 {
+#ifdef CONFIG_SPL_LOAD_FIT_FULL
+	int ret = spl_load_fit_image(spl_image, header);
+
+	if (!ret)
+		return ret;
+#endif
 	if (image_get_magic(header) == IH_MAGIC) {
 #ifdef CONFIG_SPL_LEGACY_IMAGE_SUPPORT
 		u32 header_size = sizeof(struct image_header);
@@ -407,9 +488,11 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	timer_init();
 #endif
 
-#ifdef CONFIG_SPL_BOARD_INIT
+#if CONFIG_IS_ENABLED(BOARD_INIT)
 	spl_board_init();
 #endif
+
+	bootcount_inc();
 
 	memset(&spl_image, '\0', sizeof(spl_image));
 #ifdef CONFIG_SYS_SPL_ARGS_ADDR
@@ -465,6 +548,7 @@ void board_init_r(gd_t *dummy1, ulong dummy2)
 	jump_to_image_no_args(&spl_image);
 }
 
+#ifdef CONFIG_SPL_SERIAL_SUPPORT
 /*
  * This requires UART clocks to be enabled.  In order for this to work the
  * caller must ensure that the gd pointer is valid.
@@ -477,12 +561,15 @@ void preloader_console_init(void)
 
 	gd->have_console = 1;
 
+#ifndef CONFIG_SPL_DISABLE_BANNER_PRINT
 	puts("\nU-Boot SPL " PLAIN_VERSION " (" U_BOOT_DATE " - " \
-			U_BOOT_TIME ")\n");
+			U_BOOT_TIME " " U_BOOT_TZ ")\n");
+#endif
 #ifdef CONFIG_SPL_DISPLAY_PRINT
 	spl_display_print();
 #endif
 }
+#endif
 
 /**
  * spl_relocate_stack_gd() - Relocate stack ready for board_init_r() execution

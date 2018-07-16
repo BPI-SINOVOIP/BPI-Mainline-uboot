@@ -26,6 +26,8 @@ config ARM
 config M68K
 	bool "M68000 architecture"
 	select HAVE_PRIVATE_LIBGCC
+	select SYS_BOOT_GET_CMDLINE
+	select SYS_BOOT_GET_KBD
 
 config MICROBLAZE
 	bool "MicroBlaze architecture"
@@ -53,6 +55,12 @@ config PPC
 	bool "PowerPC architecture"
 	select HAVE_PRIVATE_LIBGCC
 	select SUPPORT_OF_CONTROL
+	select SYS_BOOT_GET_CMDLINE
+	select SYS_BOOT_GET_KBD
+
+config RISCV
+	bool "riscv architecture"
+	select SUPPORT_OF_CONTROL
 
 config SANDBOX
 	bool "Sandbox"
@@ -66,6 +74,8 @@ config SANDBOX
 	select DM_SPI
 	select DM_GPIO
 	select DM_MMC
+	select HAVE_BLOCK_DEVICE
+	select SPI
 	select LZO
 	imply CMD_GETTIME
 	imply CMD_HASH
@@ -194,3 +204,4 @@ source "arch/sandbox/Kconfig"
 source "arch/sh/Kconfig"
 source "arch/x86/Kconfig"
 source "arch/xtensa/Kconfig"
+source "arch/riscv/Kconfig"

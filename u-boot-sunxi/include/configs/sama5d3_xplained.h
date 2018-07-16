@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuration settings for the SAMA5D3 Xplained board.
  *
  * Copyright (C) 2014 Atmel Corporation
  *		      Bo Shen <voice.shen@atmel.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -70,7 +69,6 @@
 #define CONFIG_SYS_LOAD_ADDR			0x22000000 /* load address */
 
 /* SPL */
-#define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x300000
 #define CONFIG_SPL_MAX_SIZE		0x18000
 #define CONFIG_SPL_BSS_START_ADDR	0x20000000

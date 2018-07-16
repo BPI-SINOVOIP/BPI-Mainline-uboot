@@ -59,29 +59,62 @@ config CC_OPTIMIZE_FOR_SIZE
 
 	  This option is enabled by default for U-Boot.
 
+config CC_COVERAGE
+	bool "Enable code coverage analysis"
+	depends on SANDBOX
+	help
+	  Enabling this option will pass "--coverage" to gcc to compile
+	  and link code instrumented for coverage analysis.
+
 config DISTRO_DEFAULTS
 	bool "Select defaults suitable for booting general purpose Linux distributions"
-	default y if ARCH_SUNXI || TEGRA
-	default y if ARCH_LS2080A
-	default y if ARCH_MESON
-	default y if ARCH_ROCKCHIP
-	default n
 	imply USE_BOOTCOMMAND
 	select CMD_BOOTZ if ARM && !ARM64
 	select CMD_BOOTI if ARM64
-	select CMD_DHCP
-	select CMD_PXE
+	select CMD_DHCP if CMD_NET
+	select CMD_PING if CMD_NET
+	select CMD_PXE if NET
+	select CMD_ENV_EXISTS
 	select CMD_EXT2
 	select CMD_EXT4
 	select CMD_FAT
 	select CMD_FS_GENERIC
-	select CMD_MII
-	select CMD_PING
-	select CMD_PART
+	imply CMD_MII if NET
+	select CMD_PART if PARTITIONS
 	select HUSH_PARSER
+	select CMDLINE_EDITING
+	select AUTO_COMPLETE
+	select SYS_LONGHELP
+	select SUPPORT_RAW_INITRD
+	select ENV_VARS_UBOOT_CONFIG
 	help
 	  Select this to enable various options and commands which are suitable
 	  for building u-boot for booting general purpose Linux distributions.
+
+config ENV_VARS_UBOOT_CONFIG
+	bool "Add arch, board, vendor and soc variables to default environment"
+	help
+	  Define this in order to add variables describing the
+	  U-Boot build configuration to the default environment.
+	  These will be named arch, cpu, board, vendor, and soc.
+	  Enabling this option will cause the following to be defined:
+	  - CONFIG_SYS_ARCH
+	  - CONFIG_SYS_CPU
+	  - CONFIG_SYS_BOARD
+	  - CONFIG_SYS_VENDOR
+	  - CONFIG_SYS_SOC
+
+config SYS_BOOT_GET_CMDLINE
+	bool "Enable kernel command line setup"
+	help
+	  Enables allocating and saving kernel cmdline in space between
+	  "bootm_low" and "bootm_low" + BOOTMAPSZ.
+
+config SYS_BOOT_GET_KBD
+	bool "Enable kernel board information setup"
+	help
+	  Enables allocating and saving a kernel copy of the bd_info in
+	  space between "bootm_low" and "bootm_low" + BOOTMAPSZ.
 
 config SYS_MALLOC_F
 	bool "Enable malloc() pool before relocation"
@@ -95,6 +128,7 @@ config SYS_MALLOC_F
 config SYS_MALLOC_F_LEN
 	hex "Size of malloc() pool before relocation"
 	depends on SYS_MALLOC_F
+	default 0x1000 if AM33XX
 	default 0x400
 	help
 	  Before relocation, memory is very limited on many platforms. Still,
@@ -219,6 +253,7 @@ config FIT_SIGNATURE
 	bool "Enable signature verification of FIT uImages"
 	depends on DM
 	select RSA
+	select HASH
 	help
 	  This option enables signature verification of FIT uImages,
 	  using a hash signed and verified using RSA. If
@@ -270,6 +305,12 @@ config SPL_FIT
 	depends on SPL
 	select SPL_OF_LIBFDT
 
+config SPL_FIT_PRINT
+	bool "Support FIT printing within SPL"
+	depends on SPL_FIT
+	help
+	  Support printing the content of the fitImage in a verbose manner in SPL.
+
 config SPL_FIT_SIGNATURE
 	bool "Enable signature verification of FIT firmware within SPL"
 	depends on SPL_DM
@@ -277,6 +318,17 @@ config SPL_FIT_SIGNATURE
 	select SPL_RSA
 
 config SPL_LOAD_FIT
+	bool "Enable SPL loading U-Boot as a FIT"
+	select SPL_FIT
+	help
+	  Normally with the SPL framework a legacy image is generated as part
+	  of the build. This contains U-Boot along with information as to
+	  where it should be loaded. This option instead enables generation
+	  of a FIT (Flat Image Tree) which provides more flexibility. In
+	  particular it can handle selecting from multiple device tree
+	  and passing the correct one to U-Boot.
+
+config SPL_LOAD_FIT_FULL
 	bool "Enable SPL loading U-Boot as a FIT"
 	select SPL_FIT
 	help
@@ -323,6 +375,16 @@ endif # SPL
 
 endif # FIT
 
+config IMAGE_FORMAT_LEGACY
+	bool "Enable support for the legacy image format"
+	default y if !FIT_SIGNATURE
+	help
+	  This option enables the legacy image format. It is enabled by
+	  default for backward compatibility, unless FIT_SIGNATURE is
+	  set where it is disabled so that unsigned images cannot be
+	  loaded. If a board needs the legacy image format support in this
+	  case, enable it here.
+
 config OF_BOARD_SETUP
 	bool "Set up board-specific details in device tree before boot"
 	depends on OF_LIBFDT
@@ -366,15 +428,16 @@ config SYS_EXTRA_OPTIONS
 	  new boards should not use this option.
 
 config SYS_TEXT_BASE
-	depends on ARC || X86 || ARCH_UNIPHIER || ARCH_ZYNQMP || \
-		(M68K && !TARGET_ASTRO_MCF5373L) || MICROBLAZE || MIPS || \
-		ARCH_ZYNQ || ARCH_KEYSTONE || ARCH_OMAP2PLUS
+	depends on !NIOS2 && !XTENSA
 	depends on !EFI_APP
+	default 0x80800000 if ARCH_OMAP2PLUS
+	default 0x4a000000 if ARCH_SUNXI && !MACH_SUN9I && !MACH_SUN8I_V3S
+	default 0x2a000000 if ARCH_SUNXI && MACH_SUN9I
+	default 0x42e00000 if ARCH_SUNXI && MACH_SUN8I_V3S
 	hex "Text Base"
 	help
-	  TODO: Move CONFIG_SYS_TEXT_BASE for all the architecture
+	  The address in memory that U-Boot will be running from, initially.
 
-	default 0x80800000 if ARCH_OMAP2PLUS
 
 
 config SYS_CLK_FREQ

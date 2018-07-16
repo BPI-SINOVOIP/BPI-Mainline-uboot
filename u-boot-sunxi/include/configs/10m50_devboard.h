@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2005, Psyent Corporation <www.psyent.com>
  * Scott McNutt <smcnutt@psyent.com>
  * (C) Copyright 2010, Thomas Chou <thomas@wytron.com.tw>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -12,7 +11,6 @@
 /*
  * BOARD/CPU
  */
-#define CONFIG_DISPLAY_BOARDINFO_LATE
 
 /*
  * SERIAL
@@ -31,15 +29,11 @@
  */
 #define CONFIG_SYS_RX_ETH_BUFFER	0
 #define CONFIG_SYS_FAULT_ECHO_LINK_DOWN
-#define CONFIG_PHY_MARVELL
 
 /*
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /*
  * FDT options
@@ -77,7 +71,6 @@
 /*
  * MISC
  */
-#define CONFIG_SYS_LONGHELP		/* Provide extended help */
 #define CONFIG_SYS_LOAD_ADDR		0xcc000000	/* Half of RAM */
 #define CONFIG_LOADADDR			CONFIG_SYS_LOAD_ADDR
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
@@ -85,7 +78,5 @@
 					 CONFIG_ENV_SIZE - \
 					 CONFIG_SYS_MALLOC_LEN -	\
 					 0x10000)
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_CMDLINE_EDITING
 
 #endif /* __CONFIG_H */

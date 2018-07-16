@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2011
  * egnite GmbH <info@egnite.de>
  *
  * Configuation settings for Ethernut 5 with AT91SAM9XE.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -13,7 +12,6 @@
 #include <asm/hardware.h>
 
 /* The first stage boot loader expects u-boot running at this address. */
-#define CONFIG_SYS_TEXT_BASE	0x27000000	/* 16MB available */
 
 /* The first stage boot loader takes care of low level initialization. */
 #define CONFIG_SKIP_LOWLEVEL_INIT
@@ -143,9 +141,6 @@
 /* DHCP/BOOTP options */
 #ifdef CONFIG_CMD_DHCP
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 #define CONFIG_SYS_AUTOLOAD	"n"
 #endif
 
@@ -162,7 +157,5 @@
 				"bootm 0x22000000"
 
 /* Misc. u-boot settings */
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING
 
 #endif

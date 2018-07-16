@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2011 The Chromium OS Authors.
  * (C) Copyright 2008
  * Graeme Russ, graeme.russ@gmail.com.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <asm/ibmpc.h>
@@ -17,8 +16,6 @@
  */
 #define CONFIG_SHOW_BOOT_PROGRESS
 #define CONFIG_PHYSMEM
-#define CONFIG_DISPLAY_BOARDINFO_LATE
-#define CONFIG_LAST_STAGE_INIT
 #define CONFIG_NR_DRAM_BANKS		8
 
 #define CONFIG_LMB
@@ -55,17 +52,14 @@
 					 9600, 19200, 38400, 115200}
 #define CONFIG_SYS_NS16550_PORT_MAPPED
 
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_AUTO_COMPLETE
-
-#define CONFIG_SUPPORT_VFAT
-
 /*-----------------------------------------------------------------------
  * Command line configuration.
  */
 
+#ifndef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND	\
 	"ext2load scsi 0:3 01000000 /boot/vmlinuz; zboot 01000000"
+#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_KGDB_BAUDRATE			115200
@@ -74,7 +68,6 @@
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_CBSIZE			512
 
 #define CONFIG_SYS_MEMTEST_START		0x00100000
@@ -93,11 +86,6 @@
 #define CONFIG_ENV_OVERWRITE
 
 /*-----------------------------------------------------------------------
- * FLASH configuration
- */
-#define CONFIG_SPI
-
-/*-----------------------------------------------------------------------
  * Environment configuration
  */
 #define CONFIG_ENV_SIZE			0x01000
@@ -113,13 +101,10 @@
 
 #define CONFIG_TFTP_TSIZE
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /* Default environment */
 #define CONFIG_ROOTPATH		"/opt/nfsroot"
-#define CONFIG_HOSTNAME		x86
+#define CONFIG_HOSTNAME		"x86"
 #define CONFIG_BOOTFILE		"bzImage"
 #define CONFIG_LOADADDR		0x1000000
 #define CONFIG_RAMDISK_ADDR	0x4000000

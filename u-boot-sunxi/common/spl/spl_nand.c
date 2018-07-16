@@ -1,15 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2011
  * Corscience GmbH & Co. KG - Simon Schwarz <schwarz@corscience.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <common.h>
 #include <config.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <nand.h>
-#include <libfdt_env.h>
+#include <linux/libfdt_env.h>
 #include <fdt.h>
 
 #if defined(CONFIG_SPL_NAND_RAW_ONLY)

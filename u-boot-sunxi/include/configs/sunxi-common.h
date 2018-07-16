@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2012-2012 Henrik Nordstrom <henrik@henriknordstrom.net>
  *
@@ -6,8 +7,6 @@
  * Tom Cubie <tangliang@allwinnertech.com>
  *
  * Configuration settings for the Allwinner sunxi series of boards.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _SUNXI_COMMON_CONFIG_H
@@ -15,12 +14,6 @@
 
 #include <asm/arch/cpu.h>
 #include <linux/stringify.h>
-
-#ifdef BPI
-#else
-#undef CONFIG_SYS_PROMPT
-#define	CONFIG_SYS_PROMPT "BPI-IoT> "
-#endif
 
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
 /*
@@ -70,7 +63,6 @@
 #define SDRAM_OFFSET(x) 0x2##x
 #define CONFIG_SYS_SDRAM_BASE		0x20000000
 #define CONFIG_SYS_LOAD_ADDR		0x22000000 /* default load address */
-#define CONFIG_SYS_TEXT_BASE		0x2a000000
 /* Note SPL_STACK_R_ADDR is set through Kconfig, we include it here 
  * since it needs to fit in with the other values. By also #defining it
  * we get warnings if the Kconfig value mismatches. */
@@ -81,11 +73,6 @@
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define CONFIG_SYS_LOAD_ADDR		0x42000000 /* default load address */
 /* V3s do not have enough memory to place code at 0x4a000000 */
-#ifndef CONFIG_MACH_SUN8I_V3S
-#define CONFIG_SYS_TEXT_BASE		0x4a000000
-#else
-#define CONFIG_SYS_TEXT_BASE		0x42e00000
-#endif
 /* Note SPL_STACK_R_ADDR is set through Kconfig, we include it here 
  * since it needs to fit in with the other values. By also #defining it
  * we get warnings if the Kconfig value mismatches. */
@@ -153,6 +140,16 @@
 #endif
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
+
+#ifdef CONFIG_ARM64
+/*
+ * This is actually (CONFIG_ENV_OFFSET -
+ * (CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)), but the value will be used
+ * directly in a makefile, without the preprocessor expansion.
+ */
+#define CONFIG_BOARD_SIZE_LIMIT		0x7e000
+#endif
+
 #if CONFIG_MMC_SUNXI_SLOT_EXTRA != -1
 /* If we have two devices (most likely eMMC + MMC), favour the eMMC */
 #define CONFIG_SYS_MMC_ENV_DEV		1
@@ -185,8 +182,6 @@
 /* FLASH and environment organization */
 
 #define CONFIG_SYS_MONITOR_LEN		(768 << 10)	/* 768 KiB */
-
-#define CONFIG_SPL_FRAMEWORK
 
 #ifndef CONFIG_ARM64		/* AArch64 FEL support is not ready yet */
 #define CONFIG_SPL_BOARD_LOAD_IMAGE
@@ -281,10 +276,6 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_SUNXI_MAX_FB_SIZE (16 << 20)
 
 #define CONFIG_VIDEO_LOGO
-#ifdef BPI
-#else
-#define CONFIG_VIDEO_BMP_LOGO
-#endif
 #define CONFIG_VIDEO_STD_TIMINGS
 #define CONFIG_I2C_EDID
 #define VIDEO_LINE_LEN (pGD->plnSizeX)
@@ -296,12 +287,10 @@ extern int soft_i2c_gpio_scl;
 
 /* Ethernet support */
 #ifdef CONFIG_SUN4I_EMAC
-#define CONFIG_PHY_ADDR		1
 #define CONFIG_MII			/* MII PHY management		*/
 #endif
 
 #ifdef CONFIG_SUN7I_GMAC
-#define CONFIG_PHY_ADDR		1
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_PHY_REALTEK
 #endif
@@ -310,14 +299,6 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_USB_OHCI_SUNXI
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS 1
-#endif
-
-#ifdef CONFIG_USB_MUSB_SUNXI
-#define CONFIG_USB_MUSB_PIO_ONLY
-#endif
-
-#ifdef CONFIG_USB_MUSB_GADGET
-#define CONFIG_USB_FUNCTION_MASS_STORAGE
 #endif
 
 #ifdef CONFIG_USB_FUNCTION_MASS_STORAGE
@@ -330,7 +311,6 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_MISC_INIT_R
 
 #ifndef CONFIG_SPL_BUILD
-#include <config_distro_defaults.h>
 
 #ifdef CONFIG_ARM64
 /*
@@ -447,7 +427,6 @@ extern int soft_i2c_gpio_scl;
 	func(DHCP, dhcp, na)
 
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
-/*
 #define BOOTCMD_SUNXI_COMPAT \
 	"bootcmd_sunxi_compat=" \
 		"setenv root /dev/mmcblk0p3 rootwait; " \
@@ -458,19 +437,6 @@ extern int soft_i2c_gpio_scl;
 		"setenv bootargs console=${console} root=${root} ${extraargs}; " \
 		"ext2load mmc 0 0x43000000 script.bin && " \
 		"ext2load mmc 0 0x48000000 uImage && " \
-		"bootm 0x48000000\0"
-*/
-/* BPI */
-#define BOOTCMD_SUNXI_COMPAT \
-	"bootcmd_sunxi_compat=" \
-		"setenv root /dev/mmcblk0p2 rootwait; " \
-		"if fatload mmc 0 0x44000000 ${bpi}/${board}/${service}/uEnv.txt; then " \
-			"echo Loaded environment from uEnv.txt; " \
-			"env import -t 0x44000000 ${filesize}; " \
-		"fi; " \
-		"setenv bootargs console=${console} root=${root} ${extraargs}; " \
-		"fatload mmc 0 0x43000000 script.bin && " \
-		"fatload mmc 0 0x48000000 uImage && " \
 		"bootm 0x48000000\0"
 #else
 #define BOOTCMD_SUNXI_COMPAT

@@ -1,6 +1,4 @@
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
+# SPDX-License-Identifier: GPL-2.0+
 
 ifdef CONFIG_SPL_BUILD
 
@@ -33,5 +31,5 @@ obj-y += dram/
 
 obj-$(CONFIG_DEBUG_UART_UNIPHIER) += debug-uart/
 
-obj-$(CONFIG_CPU_V7) += arm32/
+obj-$(CONFIG_CPU_V7A) += arm32/
 obj-$(CONFIG_ARM64) += arm64/

@@ -1,14 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2012 SAMSUNG Electronics
  * Jaehoon Chung <jh80.chung@samsung.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <dwmmc.h>
 #include <fdtdec.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <malloc.h>
 #include <errno.h>
 #include <asm/arch/dwmmc.h>
@@ -168,6 +167,7 @@ static int exynos_dwmci_get_config(const void *blob, int node,
 
 	if (host->dev_index > 4) {
 		printf("DWMMC%d: Can't get the dev index\n", host->dev_index);
+		free(priv);
 		return -EINVAL;
 	}
 
@@ -178,6 +178,7 @@ static int exynos_dwmci_get_config(const void *blob, int node,
 	base = fdtdec_get_addr(blob, node, "reg");
 	if (!base) {
 		printf("DWMMC%d: Can't get base address\n", host->dev_index);
+		free(priv);
 		return -EINVAL;
 	}
 	host->ioaddr = (void *)base;
@@ -187,6 +188,7 @@ static int exynos_dwmci_get_config(const void *blob, int node,
 	if (err) {
 		printf("DWMMC%d: Can't get sdr-timings for devider\n",
 				host->dev_index);
+		free(priv);
 		return -EINVAL;
 	}
 

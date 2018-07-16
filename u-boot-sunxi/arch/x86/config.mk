@@ -1,9 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0+
 #
 # (C) Copyright 2000-2002
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
 
 CONFIG_STANDALONE_LOAD_ADDR ?= 0x40000
 
@@ -88,18 +86,34 @@ else
 PLATFORM_CPPFLAGS += -D__I386__
 endif
 
-ifneq ($(CONFIG_EFI_STUB)$(CONFIG_CMD_BOOTEFI_HELLO_COMPILE),)
+ifdef CONFIG_EFI_STUB
 
-ifneq ($(CONFIG_EFI_STUB_64BIT),)
+ifdef CONFIG_EFI_STUB_64BIT
 EFI_LDS := elf_x86_64_efi.lds
 EFI_CRT0 := crt0_x86_64_efi.o
 EFI_RELOC := reloc_x86_64_efi.o
-EFI_TARGET := --target=efi-app-ia32
 else
 EFI_LDS := elf_ia32_efi.lds
 EFI_CRT0 := crt0_ia32_efi.o
 EFI_RELOC := reloc_ia32_efi.o
-EFI_TARGET := --target=efi-app-x86_64
 endif
 
+else
+
+ifdef CONFIG_X86_64
+EFI_LDS := elf_x86_64_efi.lds
+EFI_CRT0 := crt0_x86_64_efi.o
+EFI_RELOC := reloc_x86_64_efi.o
+else
+EFI_LDS := elf_ia32_efi.lds
+EFI_CRT0 := crt0_ia32_efi.o
+EFI_RELOC := reloc_ia32_efi.o
+endif
+
+endif
+
+ifdef CONFIG_X86_64
+EFI_TARGET := --target=efi-app-x86_64
+else
+EFI_TARGET := --target=efi-app-ia32
 endif

@@ -1,5 +1,13 @@
 menu "Watchdog Timer Support"
 
+config WATCHDOG
+	bool "Enable U-Boot watchdog reset"
+	help
+	  This option enables U-Boot watchdog support where U-Boot is using
+	  watchdog_reset function to service watchdog device in U-Boot. Enable
+	  this option if you want to service enabled watchdog by U-Boot. Disable
+	  this option if you want U-Boot to start watchdog but never service it.
+
 config HW_WATCHDOG
 	bool
 
@@ -48,9 +56,18 @@ config WDT_SANDBOX
 	bool "Enable Watchdog Timer support for Sandbox"
 	depends on SANDBOX && WDT
 	help
-		Enable Watchdog Timer support in Sandbox. This is a dummy device that
-		can be probed and supports all of the methods of WDT, but does not
-		really do anything.
+	  Enable Watchdog Timer support in Sandbox. This is a dummy device that
+	  can be probed and supports all of the methods of WDT, but does not
+	  really do anything.
+
+config WDT_ARMADA_37XX
+	bool "Marvell Armada 37xx watchdog timer support"
+	depends on WDT && ARMADA_3700
+	help
+	   Enable this to support Watchdog Timer on Marvell Armada 37xx SoC.
+	   There are 4 possible clocks which can be used on these SoCs. This
+	   driver uses the second clock (ID 1), assuming that so will also
+	   Linux's driver.
 
 config WDT_ASPEED
 	bool "Aspeed ast2400/ast2500 watchdog timer support"
@@ -77,5 +94,13 @@ config WDT_ORION
 	help
 	   Select this to enable Orion watchdog timer, which can be found on some
 	   Marvell Armada chips.
+
+config WDT_CDNS
+	bool "Cadence watchdog timer support"
+	depends on WDT
+	imply WATCHDOG
+	help
+	   Select this to enable Cadence watchdog timer, which can be found on some
+	   Xilinx Microzed Platform.
 
 endmenu

@@ -1,11 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Aaron <leafy.myeh@allwinnertech.com>
  *
  * MMC driver for allwinner sunxi platform.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -30,6 +29,7 @@ struct sunxi_mmc_priv {
 	uint32_t *mclkreg;
 	unsigned fatal_err;
 	struct gpio_desc cd_gpio;	/* Change Detect GPIO */
+	int cd_inverted;		/* Inverted Card Detect */
 	struct sunxi_mmc *reg;
 	struct mmc_config cfg;
 };
@@ -146,19 +146,19 @@ static int mmc_set_mod_clk(struct sunxi_mmc_priv *priv, unsigned int hz)
 		oclk_dly = 0;
 		sclk_dly = 5;
 #ifdef CONFIG_MACH_SUN9I
-	} else if (hz <= 50000000) {
+	} else if (hz <= 52000000) {
 		oclk_dly = 5;
 		sclk_dly = 4;
 	} else {
-		/* hz > 50000000 */
+		/* hz > 52000000 */
 		oclk_dly = 2;
 		sclk_dly = 4;
 #else
-	} else if (hz <= 50000000) {
+	} else if (hz <= 52000000) {
 		oclk_dly = 3;
 		sclk_dly = 4;
 	} else {
-		/* hz > 50000000 */
+		/* hz > 52000000 */
 		oclk_dly = 1;
 		sclk_dly = 4;
 #endif
@@ -187,15 +187,16 @@ static int mmc_update_clk(struct sunxi_mmc_priv *priv)
 {
 	unsigned int cmd;
 	unsigned timeout_msecs = 2000;
+	unsigned long start = get_timer(0);
 
 	cmd = SUNXI_MMC_CMD_START |
 	      SUNXI_MMC_CMD_UPCLK_ONLY |
 	      SUNXI_MMC_CMD_WAIT_PRE_OVER;
+
 	writel(cmd, &priv->reg->cmd);
 	while (readl(&priv->reg->cmd) & SUNXI_MMC_CMD_START) {
-		if (!timeout_msecs--)
+		if (get_timer(start) > timeout_msecs)
 			return -1;
-		udelay(1000);
 	}
 
 	/* clock update sets various irq status bits, clear these */
@@ -276,18 +277,21 @@ static int mmc_trans_data_by_cpu(struct sunxi_mmc_priv *priv, struct mmc *mmc,
 	unsigned i;
 	unsigned *buff = (unsigned int *)(reading ? data->dest : data->src);
 	unsigned byte_cnt = data->blocksize * data->blocks;
-	unsigned timeout_usecs = (byte_cnt >> 8) * 1000;
-	if (timeout_usecs < 2000000)
-		timeout_usecs = 2000000;
+	unsigned timeout_msecs = byte_cnt >> 8;
+	unsigned long  start;
+
+	if (timeout_msecs < 2000)
+		timeout_msecs = 2000;
 
 	/* Always read / write data through the CPU */
 	setbits_le32(&priv->reg->gctrl, SUNXI_MMC_GCTRL_ACCESS_BY_AHB);
 
+	start = get_timer(0);
+
 	for (i = 0; i < (byte_cnt >> 2); i++) {
 		while (readl(&priv->reg->status) & status_bit) {
-			if (!timeout_usecs--)
+			if (get_timer(start) > timeout_msecs)
 				return -1;
-			udelay(1);
 		}
 
 		if (reading)
@@ -303,16 +307,16 @@ static int mmc_rint_wait(struct sunxi_mmc_priv *priv, struct mmc *mmc,
 			 uint timeout_msecs, uint done_bit, const char *what)
 {
 	unsigned int status;
+	unsigned long start = get_timer(0);
 
 	do {
 		status = readl(&priv->reg->rint);
-		if (!timeout_msecs-- ||
+		if ((get_timer(start) > timeout_msecs) ||
 		    (status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT)) {
 			debug("%s timeout %x\n", what,
 			      status & SUNXI_MMC_RINT_INTERRUPT_ERROR_BIT);
 			return -ETIMEDOUT;
 		}
-		udelay(1000);
 	} while (!(status & done_bit));
 
 	return 0;
@@ -404,15 +408,16 @@ static int sunxi_mmc_send_cmd_common(struct sunxi_mmc_priv *priv,
 	}
 
 	if (cmd->resp_type & MMC_RSP_BUSY) {
+		unsigned long start = get_timer(0);
 		timeout_msecs = 2000;
+
 		do {
 			status = readl(&priv->reg->status);
-			if (!timeout_msecs--) {
+			if (get_timer(start) > timeout_msecs) {
 				debug("busy timeout\n");
 				error = -ETIMEDOUT;
 				goto out;
 			}
-			udelay(1000);
 		} while (status & SUNXI_MMC_STATUS_CARD_DATA_BUSY);
 	}
 
@@ -465,12 +470,7 @@ static int sunxi_mmc_getcd_legacy(struct mmc *mmc)
 	if (cd_pin < 0)
 		return 1;
 
-#ifdef BPI
 	return !gpio_get_value(cd_pin);
-#else
-	printf("BPI: skip sunxi_mmc_getcd pin %d(%d)\n",cd_pin, gpio_get_value(cd_pin));
-	return 1;
-#endif
 }
 
 static const struct mmc_ops sunxi_mmc_ops = {
@@ -549,9 +549,11 @@ static int sunxi_mmc_getcd(struct udevice *dev)
 {
 	struct sunxi_mmc_priv *priv = dev_get_priv(dev);
 
-	if (dm_gpio_is_valid(&priv->cd_gpio))
-		return dm_gpio_get_value(&priv->cd_gpio);
+	if (dm_gpio_is_valid(&priv->cd_gpio)) {
+		int cd_state = dm_gpio_get_value(&priv->cd_gpio);
 
+		return cd_state ^ priv->cd_inverted;
+	}
 	return 1;
 }
 
@@ -614,6 +616,9 @@ static int sunxi_mmc_probe(struct udevice *dev)
 
 		sunxi_gpio_set_pull(cd_pin, SUNXI_GPIO_PULL_UP);
 	}
+
+	/* Check if card detect is inverted */
+	priv->cd_inverted = dev_read_bool(dev, "cd-inverted");
 
 	upriv->mmc = &plat->mmc;
 

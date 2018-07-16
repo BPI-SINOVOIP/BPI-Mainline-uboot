@@ -1,17 +1,15 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Renesas Technology RSK 7203
  *
  * Copyright (C) 2008 Nobuhiro Iwamatsu
  * Copyright (C) 2008 Renesas Solutions Corp.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __RSK7203_H
 #define __RSK7203_H
 
 #define CONFIG_CPU_SH7203	1
-#define CONFIG_RSK7203	1
 
 #define CONFIG_LOADADDR		0x0C100000 /* RSK7203_SDRAM_BASE + 1MB */
 
@@ -23,8 +21,6 @@
 #define RSK7203_FLASH_BASE_1	0x20000000	/* Non cache */
 #define RSK7203_FLASH_BANK_SIZE	(4 * 1024 * 1024)
 
-#define CONFIG_SYS_TEXT_BASE	0x0C7C0000
-#define CONFIG_SYS_LONGHELP		/* undef to save memory	*/
 /* List of legal baudrate settings for this board */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 115200 }
 

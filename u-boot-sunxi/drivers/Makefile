@@ -1,6 +1,4 @@
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
+# SPDX-License-Identifier: GPL-2.0+
 
 obj-$(CONFIG_$(SPL_TPL_)CLK) += clk/
 obj-$(CONFIG_$(SPL_TPL_)DM) += core/
@@ -20,6 +18,7 @@ obj-$(CONFIG_$(SPL_TPL_)TIMER) += timer/
 ifndef CONFIG_TPL_BUILD
 ifdef CONFIG_SPL_BUILD
 
+obj-$(CONFIG_SPL_BOOTCOUNT_LIMIT) += bootcount/
 obj-$(CONFIG_SPL_CPU_SUPPORT) += cpu/
 obj-$(CONFIG_SPL_CRYPTO_SUPPORT) += crypto/
 obj-$(CONFIG_SPL_GPIO_SUPPORT) += gpio/
@@ -29,13 +28,14 @@ obj-$(CONFIG_ARMADA_XP) += ddr/marvell/axp/
 obj-$(CONFIG_ALTERA_SDRAM) += ddr/altera/
 obj-$(CONFIG_SPL_POWER_SUPPORT) += power/ power/pmic/
 obj-$(CONFIG_SPL_POWER_SUPPORT) += power/regulator/
+obj-$(CONFIG_SPL_RESET_SUPPORT) += reset/
 obj-$(CONFIG_SPL_MTD_SUPPORT) += mtd/
 obj-$(CONFIG_SPL_ONENAND_SUPPORT) += mtd/onenand/
 obj-$(CONFIG_SPL_UBI) += mtd/ubispl/
 obj-$(CONFIG_SPL_DMA_SUPPORT) += dma/
 obj-$(CONFIG_SPL_ETH_SUPPORT) += net/
 obj-$(CONFIG_SPL_ETH_SUPPORT) += net/phy/
-obj-$(CONFIG_SPL_USBETH_SUPPORT) += net/phy/
+obj-$(CONFIG_SPL_USB_ETHER) += net/phy/
 obj-$(CONFIG_SPL_PCI_SUPPORT) += pci/
 obj-$(CONFIG_SPL_PCH_SUPPORT) += pch/
 obj-$(CONFIG_SPL_RTC_SUPPORT) += rtc/
@@ -71,6 +71,7 @@ obj-y += block/
 obj-$(CONFIG_BOOTCOUNT_LIMIT) += bootcount/
 obj-$(CONFIG_CPU) += cpu/
 obj-y += crypto/
+obj-$(CONFIG_FASTBOOT) += fastboot/
 obj-y += firmware/
 obj-$(CONFIG_FPGA) += fpga/
 obj-y += misc/
@@ -79,6 +80,7 @@ obj-$(CONFIG_NVME) += nvme/
 obj-y += pcmcia/
 obj-y += dfu/
 obj-$(CONFIG_X86) += pch/
+obj-y += phy/allwinner/
 obj-y += phy/marvell/
 obj-y += rtc/
 obj-y += scsi/

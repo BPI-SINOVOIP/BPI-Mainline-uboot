@@ -1,14 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) 2017 NXP Semiconductors
- * Copyright (C) 2014 Freescale Semiconductor
- *
- * SPDX-License-Identifier:	GPL-2.0+
+ * Copyright 2014 Freescale Semiconductor, Inc.
+ * Copyright 2017 NXP
  */
 #include <common.h>
 #include <errno.h>
 #include <linux/bug.h>
 #include <asm/io.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <net.h>
 #include <fdt_support.h>
 #include <fsl-mc/fsl_mc.h>
@@ -1415,7 +1414,9 @@ int fsl_mc_ldpaa_exit(bd_t *bd)
 	bool mc_boot_status = false;
 
 	if (bd && mc_lazy_dpl_addr && !fsl_mc_ldpaa_exit(NULL)) {
-		mc_apply_dpl(mc_lazy_dpl_addr);
+		err = mc_apply_dpl(mc_lazy_dpl_addr);
+		if (!err)
+			fdt_fixup_board_enet(working_fdt);
 		mc_lazy_dpl_addr = 0;
 	}
 

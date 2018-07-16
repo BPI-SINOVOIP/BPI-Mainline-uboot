@@ -1,15 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * ether.c -- Ethernet gadget driver, with CDC and non-CDC options
  *
  * Copyright (C) 2003-2005,2008 David Brownell
  * Copyright (C) 2003-2004 Robert Schwebel, Benedikt Spranger
  * Copyright (C) 2008 Nokia Corporation
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <console.h>
+#include <environment.h>
 #include <linux/errno.h>
 #include <linux/netdevice.h>
 #include <linux/usb/ch9.h>

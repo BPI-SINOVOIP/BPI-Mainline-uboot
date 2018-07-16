@@ -1,21 +1,16 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Config file for Compulab CM-FX6 board
  *
  * Copyright (C) 2014, Compulab Ltd - http://compulab.co.il/
  *
  * Author: Nikita Kiryanov <nikita@compulab.co.il>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_CM_FX6_H
 #define __CONFIG_CM_FX6_H
 
 #include "mx6_common.h"
-
-#ifndef CONFIG_SPL_BUILD
-#include <config_distro_defaults.h>
-#endif
 
 /* Machine config */
 #define CONFIG_SYS_LITTLE_ENDIAN
@@ -75,6 +70,7 @@
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	"pxefile_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	"scriptaddr=" __stringify(CONFIG_LOADADDR) "\0" \
+	"fdtfile=undefined\0" \
 	"stdin=serial,usbkbd\0" \
 	"stdout=serial,vga\0" \
 	"stderr=serial,vga\0" \
@@ -152,6 +148,11 @@
 		"fi;" \
 		"run setupnandboot;" \
 		"run nandboot;\0" \
+	"findfdt="\
+		"if test $board_name = Utilite && test $board_rev = MX6Q ; then " \
+			"setenv fdtfile imx6q-utilite-pro.dtb; fi; " \
+		"if test $fdtfile = undefined; then " \
+			"echo WARNING: Could not determine dtb to use; fi; \0" \
 	BOOTENV
 
 #define CONFIG_PREBOOT		"usb start;sf probe"
@@ -166,21 +167,13 @@
 #define CONFIG_EXTRA_ENV_SETTINGS
 #endif
 
-/* SPI */
-#define CONFIG_SPI
-#define CONFIG_MXC_SPI
-
 /* NAND */
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_SYS_NAND_BASE		0x40000000
 #define CONFIG_SYS_NAND_MAX_CHIPS	1
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define CONFIG_NAND_MXS
 #define CONFIG_SYS_NAND_ONFI_DETECTION
 /* APBH DMA is required for NAND support */
-#define CONFIG_APBH_DMA
-#define CONFIG_APBH_DMA_BURST
-#define CONFIG_APBH_DMA_BURST8
 #endif
 
 /* Ethernet */
@@ -230,7 +223,6 @@
 /* SPL */
 #include "imx6_spl.h"
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	(64 * 1024)
-#define CONFIG_SPL_SPI_LOAD
 
 /* Display */
 #define CONFIG_VIDEO_IPUV3

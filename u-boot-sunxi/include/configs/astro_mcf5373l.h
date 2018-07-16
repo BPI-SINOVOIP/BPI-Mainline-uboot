@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuration settings for the Sentec Cobra Board.
  *
  * (C) Copyright 2003 Josef Baumgartner <josef.baumgartner@telex.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -39,8 +38,6 @@
 #error No card type defined!
 #endif
 
-#define CONFIG_ASTRO5373L		/* define board type */
-
 /* Command line configuration */
 /*
  * CONFIG_RAM defines if u-boot is loaded via BDM (or started from
@@ -50,14 +47,10 @@
  */
 #ifdef CONFIG_RAM
 #define CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_SYS_TEXT_BASE		0x40020000
 #define ENABLE_JFFS	0
 #else
-#define CONFIG_SYS_TEXT_BASE		0x00000000
 #define ENABLE_JFFS	1
 #endif
-
-#define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_MCFRTC
 #undef RTC_DEBUG
@@ -176,12 +169,7 @@
 /* default RAM address for user programs */
 #define CONFIG_SYS_LOAD_ADDR	0x20000
 
-#define CONFIG_SYS_LONGHELP
-
 #define CONFIG_FPGA_COUNT	1
-#define	CONFIG_FPGA_XILINX
-#define	CONFIG_FPGA_SPARTAN3
-#define CONFIG_FPGA_CYCLON2
 #define CONFIG_SYS_FPGA_PROG_FEEDBACK
 #define CONFIG_SYS_FPGA_WAIT		1000
 

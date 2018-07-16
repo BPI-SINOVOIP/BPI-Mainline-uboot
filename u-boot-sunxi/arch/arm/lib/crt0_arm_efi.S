@@ -1,12 +1,13 @@
+/* SPDX-License-Identifier: GPL-2.0+ OR BSD-2-Clause */
 /*
  * crt0-efi-arm.S - PE/COFF header for ARM EFI applications
  *
  * Copright (C) 2014 Linaro Ltd. <ard.biesheuvel@linaro.org>
  *
- * SPDX-License-Identifier:     GPL-2.0+     BSD-2-Clause
- *
  * This file is taken and modified from the gnu-efi project.
  */
+
+#include <asm-generic/pe.h>
 
 	.section	.text.head
 
@@ -64,7 +65,7 @@ extra_header_fields:
 	 */
 	.long	_start - image_base		/* SizeOfHeaders */
 	.long	0				/* CheckSum */
-	.short	EFI_SUBSYSTEM			/* Subsystem */
+	.short	IMAGE_SUBSYSTEM_EFI_APPLICATION	/* Subsystem */
 	.short	0				/* DllCharacteristics */
 	.long	0				/* SizeOfStackReserve */
 	.long	0				/* SizeOfStackCommit */

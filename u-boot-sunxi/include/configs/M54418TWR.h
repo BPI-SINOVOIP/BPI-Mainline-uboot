@@ -1,10 +1,9 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Freescale MCF54418 TWR board.
  *
  * Copyright 2010-2012 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -18,7 +17,6 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_M54418TWR	/* M54418TWR board */
 
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
@@ -34,9 +32,6 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /*
  * NAND FLASH
@@ -89,7 +84,7 @@
 #endif			/* CONFIG_SYS_DISCOVER_PHY */
 #endif
 
-#define CONFIG_HOSTNAME		M54418TWR
+#define CONFIG_HOSTNAME		"M54418TWR"
 
 #if defined(CONFIG_CF_SBF)
 /* ST Micro serial flash */
@@ -155,7 +150,6 @@
 #define CONFIG_SYS_IMMR		CONFIG_SYS_MBAR
 
 /* DSPI and Serial Flash */
-#define CONFIG_CF_SPI
 #define CONFIG_CF_DSPI
 #define CONFIG_SERIAL_FLASH
 #define CONFIG_HARD_SPI
@@ -177,8 +171,6 @@
 #define CONFIG_EXTRA_CLOCK
 
 #define CONFIG_PRAM			2048	/* 2048 KB */
-
-#define CONFIG_SYS_LONGHELP		/* undef to save memory */
 
 #define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x10000)
 

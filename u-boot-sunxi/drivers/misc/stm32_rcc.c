@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
  * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -12,9 +11,14 @@
 #include <dm/device-internal.h>
 #include <dm/lists.h>
 
-struct stm32_rcc_clk stm32_rcc_clk_f4 = {
+struct stm32_rcc_clk stm32_rcc_clk_f42x = {
 	.drv_name = "stm32fx_rcc_clock",
-	.soc = STM32F4,
+	.soc = STM32F42X,
+};
+
+struct stm32_rcc_clk stm32_rcc_clk_f469 = {
+	.drv_name = "stm32fx_rcc_clock",
+	.soc = STM32F469,
 };
 
 struct stm32_rcc_clk stm32_rcc_clk_f7 = {
@@ -49,20 +53,17 @@ static int stm32_rcc_bind(struct udevice *dev)
 	if (ret)
 		return ret;
 
-#ifdef CONFIG_SPL_BUILD
-	return 0;
-#else
 	return device_bind_driver_to_node(dev, "stm32_rcc_reset",
 					  "stm32_rcc_reset",
 					  dev_ofnode(dev), &child);
-#endif
 }
 
 static const struct misc_ops stm32_rcc_ops = {
 };
 
 static const struct udevice_id stm32_rcc_ids[] = {
-	{.compatible = "st,stm32f42xx-rcc", .data = (ulong)&stm32_rcc_clk_f4 },
+	{.compatible = "st,stm32f42xx-rcc", .data = (ulong)&stm32_rcc_clk_f42x },
+	{.compatible = "st,stm32f469-rcc", .data = (ulong)&stm32_rcc_clk_f469 },
 	{.compatible = "st,stm32f746-rcc", .data = (ulong)&stm32_rcc_clk_f7 },
 	{.compatible = "st,stm32h743-rcc", .data = (ulong)&stm32_rcc_clk_h7 },
 	{ }

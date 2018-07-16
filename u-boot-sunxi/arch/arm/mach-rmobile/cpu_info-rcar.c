@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * arch/arm/cpu/armv7/rmobile/cpu_info-rcar.c
  *
  * Copyright (C) 2013,2014 Renesas Electronics Corporation
- *
- * SPDX-License-Identifier: GPL-2.0
  */
 #include <common.h>
 #include <asm/io.h>
@@ -75,7 +74,7 @@ static u32 rmobile_get_prr(void)
 		hang();
 	}
 
-	return readl(map->base);
+	return readl(map->ranges[0].start);
 }
 
 static const struct udevice_id renesas_prr_ids[] = {

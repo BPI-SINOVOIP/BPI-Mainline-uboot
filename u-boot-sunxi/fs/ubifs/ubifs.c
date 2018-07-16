@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  * This file is part of UBIFS.
  *
@@ -8,8 +9,6 @@
  *
  * Authors: Artem Bityutskiy (Битюцкий Артём)
  *          Adrian Hunter
- *
- * SPDX-License-Identifier:	GPL-2.0
  */
 
 #include <common.h>
@@ -350,7 +349,9 @@ static int ubifs_printdir(struct file *file, void *dirent)
 		dbg_gen("feed '%s', ino %llu, new f_pos %#x",
 			dent->name, (unsigned long long)le64_to_cpu(dent->inum),
 			key_hash_flash(c, &dent->key));
+#ifndef __UBOOT__
 		ubifs_assert(le64_to_cpu(dent->ch.sqnum) > ubifs_inode(dir)->creat_sqnum);
+#endif
 
 		nm.len = le16_to_cpu(dent->nlen);
 		over = filldir(c, (char *)dent->name, nm.len,
@@ -432,7 +433,9 @@ static int ubifs_finddir(struct super_block *sb, char *dirname,
 		dbg_gen("feed '%s', ino %llu, new f_pos %#x",
 			dent->name, (unsigned long long)le64_to_cpu(dent->inum),
 			key_hash_flash(c, &dent->key));
+#ifndef __UBOOT__
 		ubifs_assert(le64_to_cpu(dent->ch.sqnum) > ubifs_inode(dir)->creat_sqnum);
+#endif
 
 		nm.len = le16_to_cpu(dent->nlen);
 		if ((strncmp(dirname, (char *)dent->name, nm.len) == 0) &&

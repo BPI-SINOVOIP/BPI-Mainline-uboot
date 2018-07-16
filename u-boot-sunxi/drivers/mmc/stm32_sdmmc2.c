@@ -1,15 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2017, STMicroelectronics - All Rights Reserved
  * Author(s): Patrice Chotard, <patrice.chotard@st.com> for STMicroelectronics.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <clk.h>
 #include <dm.h>
 #include <fdtdec.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <mmc.h>
 #include <reset.h>
 #include <asm/io.h>
@@ -72,7 +71,10 @@ struct stm32_sdmmc2_ctx {
 #define SDMMC_CLKCR_HWFC_EN		BIT(17)
 #define SDMMC_CLKCR_DDR			BIT(18)
 #define SDMMC_CLKCR_BUSSPEED		BIT(19)
-#define SDMMC_CLKCR_SELCLKRX		GENMASK(21, 20)
+#define SDMMC_CLKCR_SELCLKRX_MASK	GENMASK(21, 20)
+#define SDMMC_CLKCR_SELCLKRX_CK		0
+#define SDMMC_CLKCR_SELCLKRX_CKIN	BIT(20)
+#define SDMMC_CLKCR_SELCLKRX_FBCK	BIT(21)
 
 /* SDMMC_CMD register */
 #define SDMMC_CMD_CMDINDEX		GENMASK(5, 0)
@@ -186,8 +188,6 @@ struct stm32_sdmmc2_ctx {
 
 #define SDMMC_CMD_TIMEOUT		0xFFFFFFFF
 
-DECLARE_GLOBAL_DATA_PTR;
-
 static void stm32_sdmmc2_start_data(struct stm32_sdmmc2_priv *priv,
 				    struct mmc_data *data,
 				    struct stm32_sdmmc2_ctx *ctx)
@@ -235,8 +235,8 @@ static void stm32_sdmmc2_start_data(struct stm32_sdmmc2_priv *priv,
 static void stm32_sdmmc2_start_cmd(struct stm32_sdmmc2_priv *priv,
 				   struct mmc_cmd *cmd, u32 cmd_param)
 {
-	if (readl(priv->base + SDMMC_ARG) & SDMMC_CMD_CPSMEN)
-		writel(0, priv->base + SDMMC_ARG);
+	if (readl(priv->base + SDMMC_CMD) & SDMMC_CMD_CPSMEN)
+		writel(0, priv->base + SDMMC_CMD);
 
 	cmd_param |= cmd->cmdidx | SDMMC_CMD_CPSMEN;
 	if (cmd->resp_type & MMC_RSP_PRESENT) {
@@ -495,7 +495,8 @@ static int stm32_sdmmc2_set_ios(struct udevice *dev)
 	if (mmc->bus_width == 8)
 		clk |= SDMMC_CLKCR_WIDBUS_8;
 
-	writel(clk | priv->clk_reg_msk, priv->base + SDMMC_CLKCR);
+	writel(clk | priv->clk_reg_msk | SDMMC_CLKCR_HWFC_EN,
+	       priv->base + SDMMC_CLKCR);
 
 	return 0;
 }
@@ -534,6 +535,8 @@ static int stm32_sdmmc2_probe(struct udevice *dev)
 		priv->clk_reg_msk |= SDMMC_CLKCR_NEGEDGE;
 	if (dev_read_bool(dev, "st,dirpol"))
 		priv->pwr_reg_msk |= SDMMC_POWER_DIRPOL;
+	if (dev_read_bool(dev, "st,pin-ckin"))
+		priv->clk_reg_msk |= SDMMC_CLKCR_SELCLKRX_CKIN;
 
 	ret = clk_get_by_index(dev, 0, &priv->clk);
 	if (ret)

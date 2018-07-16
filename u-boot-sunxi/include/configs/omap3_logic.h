@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2011 Logic Product Development <www.logicpd.com>
  *	Peter Barada <peter.barada@logicpd.com>
  *
  * Configuration settings for the Logic OMAP35x/DM37x SOM LV/Torpedo
  * reference boards.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -18,16 +17,7 @@
 #include <configs/ti_omap3_common.h>
 
 #ifdef CONFIG_SPL_BUILD
-/*
- * Disable MMC DM for SPL build and can be re-enabled after adding
- * DM support in SPL
- */
-#undef CONFIG_DM_MMC
-#undef OMAP_HSMMC_USE_GPIO
-
 /* select serial console configuration for SPL */
-#undef CONFIG_CONS_INDEX
-#define CONFIG_CONS_INDEX              1
 #define CONFIG_SYS_NS16550_COM1                OMAP34XX_UART1
 #endif
 
@@ -38,7 +28,6 @@
  * order to allow for BCH8 to fit in.
  */
 #undef CONFIG_SPL_TEXT_BASE
-#define CONFIG_SPL_FRAMEWORK
 #define CONFIG_SPL_TEXT_BASE		0x40200000
 
 #define CONFIG_MISC_INIT_R		/* misc_init_r dumps the die id */
@@ -49,17 +38,8 @@
 
 /* Hardware drivers */
 
-#define CONFIG_USB_OMAP3
-
 /* I2C */
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x50	/* EEPROM AT24C64      */
-
-/* USB */
-#define CONFIG_USB_MUSB_OMAP2PLUS
-#define CONFIG_USB_MUSB_PIO_ONLY
-
-/* TWL4030 */
-#define CONFIG_TWL4030_USB
 
 /* Board NAND Info. */
 #ifdef CONFIG_NAND
@@ -172,10 +152,10 @@
 		"run loadramdisk\0" \
 	"mmcramboot=setenv bootfile uImage; " \
 		"run mmcrambootcommon; " \
-		"bootm ${loadaddr} ${rdaddr} ${fdtimage}\0" \
+		"bootm ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"mmcrambootz=setenv bootfile zImage; " \
 		"run mmcrambootcommon; " \
-		"bootz ${loadaddr} ${rdaddr} ${fdtimage}\0" \
+		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 	"tftpboot=echo 'Booting kernel/ramdisk rootfs from tftp...'; " \
 		"run ramargs; " \
 		"run common_bootargs; " \

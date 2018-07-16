@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2016 Freescale Semiconductors, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -15,7 +14,6 @@
 #include <fdtdec.h>
 #include <i2c.h>
 
-DECLARE_GLOBAL_DATA_PTR;
 #define LPI2C_FIFO_SIZE 4
 #define LPI2C_TIMEOUT_MS 100
 
@@ -156,7 +154,7 @@ static int bus_i2c_receive(struct imx_lpi2c_reg *regs, u8 *rxbuf, int len)
 
 static int bus_i2c_start(struct imx_lpi2c_reg *regs, u8 addr, u8 dir)
 {
-	lpi2c_status_t result = LPI2C_SUCESS;
+	lpi2c_status_t result;
 	u32 val;
 
 	result = imx_lpci2c_check_busy_bus(regs);
@@ -184,7 +182,7 @@ static int bus_i2c_start(struct imx_lpi2c_reg *regs, u8 addr, u8 dir)
 
 static int bus_i2c_stop(struct imx_lpi2c_reg *regs)
 {
-	lpi2c_status_t result = LPI2C_SUCESS;
+	lpi2c_status_t result;
 	u32 status;
 
 	result = bus_i2c_wait_for_tx_ready(regs);
@@ -213,7 +211,7 @@ static int bus_i2c_stop(struct imx_lpi2c_reg *regs)
 
 static int bus_i2c_read(struct imx_lpi2c_reg *regs, u32 chip, u8 *buf, int len)
 {
-	lpi2c_status_t result = LPI2C_SUCESS;
+	lpi2c_status_t result;
 
 	result = bus_i2c_start(regs, chip, 1);
 	if (result)
@@ -230,7 +228,7 @@ static int bus_i2c_read(struct imx_lpi2c_reg *regs, u32 chip, u8 *buf, int len)
 
 static int bus_i2c_write(struct imx_lpi2c_reg *regs, u32 chip, u8 *buf, int len)
 {
-	lpi2c_status_t result = LPI2C_SUCESS;
+	lpi2c_status_t result;
 
 	result = bus_i2c_start(regs, chip, 0);
 	if (result)
@@ -258,7 +256,7 @@ static int bus_i2c_set_bus_speed(struct udevice *bus, int speed)
 	int i;
 
 	regs = (struct imx_lpi2c_reg *)devfdt_get_addr(bus);
-	clock_rate = imx_get_i2cclk(bus->seq + 4);
+	clock_rate = imx_get_i2cclk(bus->seq);
 	if (!clock_rate)
 		return -EPERM;
 
@@ -354,7 +352,7 @@ static int imx_lpi2c_probe_chip(struct udevice *bus, u32 chip,
 				u32 chip_flags)
 {
 	struct imx_lpi2c_reg *regs;
-	lpi2c_status_t result = LPI2C_SUCESS;
+	lpi2c_status_t result;
 
 	regs = (struct imx_lpi2c_reg *)devfdt_get_addr(bus);
 	result = bus_i2c_start(regs, chip, 0);
@@ -419,14 +417,14 @@ static int imx_lpi2c_probe(struct udevice *bus)
 	i2c_bus->bus = bus;
 
 	/* power up i2c resource */
-	ret = init_i2c_power(bus->seq + 4);
+	ret = init_i2c_power(bus->seq);
 	if (ret) {
 		debug("init_i2c_power err = %d\n", ret);
 		return ret;
 	}
 
-	/* Enable clk, only i2c4-7 can be handled by A7 core */
-	ret = enable_i2c_clk(1, bus->seq + 4);
+	/* To i.MX7ULP, only i2c4-7 can be handled by A7 core */
+	ret = enable_i2c_clk(1, bus->seq);
 	if (ret < 0)
 		return ret;
 

@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2013, Google Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifdef USE_HOSTCC
@@ -347,7 +346,7 @@ int fit_config_check_sig(const void *fit, int noffset, int required_keynode,
 
 	/*
 	 * Each node can generate one region for each sub-node. Allow for
-	 * 7 sub-nodes (hash@1, signature@1, etc.) and some extra.
+	 * 7 sub-nodes (hash-1, signature-1, etc.) and some extra.
 	 */
 	max_regions = 20 + count * 7;
 	struct fdt_region fdt_regions[max_regions];

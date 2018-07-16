@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  *  Copyright (C) 2012 Altera Corporation <www.altera.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -15,6 +14,7 @@
 #include <asm/arch/system_manager.h>
 #include <asm/arch/freeze_controller.h>
 #include <asm/arch/clock_manager.h>
+#include <asm/arch/misc.h>
 #include <asm/arch/scan_manager.h>
 #include <asm/arch/sdram.h>
 #include <asm/arch/scu.h>
@@ -66,17 +66,6 @@ u32 spl_boot_device(void)
 	}
 }
 
-#ifdef CONFIG_SPL_MMC_SUPPORT
-u32 spl_boot_mode(const u32 boot_device)
-{
-#if defined(CONFIG_SPL_FAT_SUPPORT) || defined(CONFIG_SPL_EXT_SUPPORT)
-	return MMCSD_MODE_FS;
-#else
-	return MMCSD_MODE_RAW;
-#endif
-}
-#endif
-
 #if defined(CONFIG_TARGET_SOCFPGA_GEN5)
 static void socfpga_nic301_slave_ns(void)
 {
@@ -90,9 +79,7 @@ static void socfpga_nic301_slave_ns(void)
 
 void board_init_f(ulong dummy)
 {
-#ifndef CONFIG_SOCFPGA_VIRTUAL_TARGET
 	const struct cm_config *cm_default_cfg = cm_get_default_config();
-#endif
 	unsigned long sdram_size;
 	unsigned long reg;
 
@@ -119,7 +106,6 @@ void board_init_f(ulong dummy)
 	writel(0x1, &nic301_regs->remap);	/* remap.mpuzero */
 	writel(0x1, &pl310->pl310_addr_filter_start);
 
-#ifndef CONFIG_SOCFPGA_VIRTUAL_TARGET
 	debug("Freezing all I/O banks\n");
 	/* freeze all IO banks */
 	sys_mgr_frzctrl_freeze_req();
@@ -153,8 +139,6 @@ void board_init_f(ulong dummy)
 	sysmgr_config_warmrstcfgio(1);
 	sysmgr_pinmux_init();
 	sysmgr_config_warmrstcfgio(0);
-
-#endif /* CONFIG_SOCFPGA_VIRTUAL_TARGET */
 
 	/* De-assert reset for peripherals and bridges based on handoff */
 	reset_deassert_peripherals_handoff();
@@ -208,6 +192,11 @@ void spl_board_init(void)
 
 	/* enable console uart printing */
 	preloader_console_init();
+
+	WATCHDOG_RESET();
+
+	/* Add device descriptor to FPGA device table */
+	socfpga_fpga_add();
 }
 
 void board_init_f(ulong dummy)

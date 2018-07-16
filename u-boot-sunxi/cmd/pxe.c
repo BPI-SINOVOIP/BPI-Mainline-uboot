@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2010-2011 Calxeda, Inc.
  * Copyright (c) 2014, NVIDIA CORPORATION.  All rights reserved.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -1454,8 +1453,8 @@ static struct menu *pxe_menu_to_menu(struct pxe_menu *cfg)
 	/*
 	 * Create a menu and add items for all the labels.
 	 */
-	m = menu_create(cfg->title, cfg->timeout, cfg->prompt, label_print,
-			NULL, NULL);
+	m = menu_create(cfg->title, DIV_ROUND_UP(cfg->timeout, 10),
+			cfg->prompt, label_print, NULL, NULL);
 
 	if (!m)
 		return NULL;

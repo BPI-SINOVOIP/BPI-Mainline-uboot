@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Bluewater Systems Snapper 9G45 module
  *
  * (C) Copyright 2011 Bluewater Systems
  *   Author: Andre Renaud <andre@bluewatersys.com>
  *   Author: Ryan Mallon <ryan@bluewatersys.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -14,8 +13,6 @@
 /* SoC type is defined in boards.cfg */
 #include <asm/hardware.h>
 #include <linux/sizes.h>
-
-#define CONFIG_SYS_TEXT_BASE		0x73f00000
 
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_MAIN_CLOCK      12000000 /* from 12 MHz crystal */
@@ -66,8 +63,6 @@
 #define CONFIG_ATMEL_LCD
 #define CONFIG_GURNARD_SPLASH
 
-#define CONFIG_ATMEL_SPI
-
 /* GPIOs and IO expander */
 #define CONFIG_ATMEL_LEGACY
 #define CONFIG_AT91_GPIO
@@ -80,9 +75,6 @@
 #define CONFIG_SYS_LOAD_ADDR		0x23000000
 
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /* Environment settings */
 #define CONFIG_ENV_OFFSET		(512 << 10)
@@ -110,16 +102,11 @@
 	"altbootcmd=run boot_mmc ; run boot_usb ; run boot_safe ; run boot_working\0"
 
 /* Console settings */
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING
-#define CONFIG_AUTO_COMPLETE
 
 /* U-Boot memory settings */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)
 
 /* Command line configuration */
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_MMC
 #define CONFIG_CMD_CACHE

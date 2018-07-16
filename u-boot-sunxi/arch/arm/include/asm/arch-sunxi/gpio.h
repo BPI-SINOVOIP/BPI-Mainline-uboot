@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2007-2012
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _SUNXI_GPIO_H
@@ -173,6 +172,7 @@ enum sunxi_gpio_number {
 #define SUN8I_GPD_SDC1		3
 #define SUNXI_GPD_LCD0		2
 #define SUNXI_GPD_LVDS0		3
+#define SUNXI_GPD_PWM		2
 
 #define SUN5I_GPE_SDC2		3
 #define SUN8I_GPE_TWI2		3

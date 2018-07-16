@@ -23,6 +23,29 @@ config HUSH_PARSER
 	  If disabled, you get the old, much simpler behaviour with a somewhat
 	  smaller memory footprint.
 
+config CMDLINE_EDITING
+	bool "Enable command line editing"
+	depends on CMDLINE
+	default y
+	help
+	  Enable editing and History functions for interactive command line
+	  input operations
+
+config AUTO_COMPLETE
+	bool "Enable auto complete using TAB"
+	depends on CMDLINE
+	default y
+	help
+	  Enable auto completion of commands using TAB.
+
+config SYS_LONGHELP
+	bool "Enable long help messages"
+	depends on CMDLINE
+	default y if CMDLINE
+	help
+	  Defined when you want long help messages included
+	  Do not set this option when short of memory.
+
 config SYS_PROMPT
 	string "Shell prompt"
 	default "=> "
@@ -114,8 +137,6 @@ config AUTOBOOT_STOP_STR_SHA256
 
 endmenu
 
-source "cmd/fastboot/Kconfig"
-
 config BUILD_BIN2C
 	bool
 
@@ -205,7 +226,7 @@ config CMD_BOOTEFI
 
 config CMD_BOOTEFI_HELLO_COMPILE
 	bool "Compile a standard EFI hello world binary for testing"
-	depends on CMD_BOOTEFI && (ARM || X86)
+	depends on CMD_BOOTEFI && (ARM || X86 || RISCV)
 	default y
 	help
 	  This compiles a standard EFI hello world application with U-Boot so
@@ -308,6 +329,12 @@ config CMD_SPL_WRITE_SIZE
 	  flash used by Falcon-mode boot. See the documentation until CMD_SPL
 	  for detail.
 
+config CMD_FITUPD
+	bool "fitImage update command"
+	help
+	  Implements the 'fitupd' command, which allows to automatically
+	  store software updates present on a TFTP server in NOR Flash
+
 config CMD_THOR_DOWNLOAD
 	bool "thor - TIZEN 'thor' download"
 	help
@@ -393,6 +420,12 @@ config CMD_ENV_FLAGS
 endmenu
 
 menu "Memory commands"
+
+config CMD_BINOP
+	bool "binop"
+	help
+	  Compute binary operations (xor, or, and) of byte arrays of arbitrary
+	  size from memory and store the result in memory or the environment.
 
 config CMD_CRC32
 	bool "crc32"
@@ -498,6 +531,15 @@ config CMD_MEMTEST
 	help
 	  Simple RAM read/write test.
 
+if CMD_MEMTEST
+
+config SYS_ALT_MEMTEST
+	bool "Alternative test"
+	help
+	  Use a more complete alternative memory test.
+
+endif
+
 config CMD_MX_CYCLIC
 	bool "mdc, mwc"
 	help
@@ -557,6 +599,14 @@ config CMD_ARMFLASH
 	help
 	  ARM Ltd reference designs flash partition access
 
+config CMD_ADC
+	bool "adc - Access Analog to Digital Converters info and data"
+	select ADC
+	select DM_REGULATOR
+	help
+	  Shows ADC device info and permit printing one-shot analog converted
+	  data from a named Analog to Digital Converter.
+
 config CMD_CLK
 	bool "clk - Show clock frequencies"
 	help
@@ -580,7 +630,7 @@ config CMD_DEMO
 
 config CMD_DFU
 	bool "dfu"
-	select USB_FUNCTION_DFU
+	select DFU
 	help
 	  Enables the command "dfu" which is used to have U-Boot create a DFU
 	  class device via USB. This command requires that the "dfu_alt_info"
@@ -598,6 +648,18 @@ config CMD_DM
 	  can be useful to see the state of driver model for debugging or
 	  interest.
 
+config CMD_FASTBOOT
+	bool "fastboot - Android fastboot support"
+	depends on FASTBOOT
+	help
+	  This enables the command "fastboot" which enables the Android
+	  fastboot mode for the platform. Fastboot is a protocol for
+	  downloading images, flashing and device control used on
+	  Android devices. Fastboot requires either the network stack
+	  enabled or support for acting as a USB device.
+
+	  See doc/README.android-fastboot for more information.
+
 config CMD_FDC
 	bool "fdcboot - Boot from floppy device"
 	help
@@ -614,6 +676,7 @@ config CMD_FLASH
 
 config CMD_FPGA
 	bool "fpga"
+	depends on FPGA
 	default y
 	help
 	  FPGA support.
@@ -644,6 +707,13 @@ config CMD_FPGA_LOADP
 	  Supports loading an FPGA device from a bitstream buffer containing
 	  a partial bitstream.
 
+config CMD_FPGA_LOAD_SECURE
+	bool "fpga loads - loads secure bitstreams (Xilinx only)"
+	depends on CMD_FPGA
+	help
+	  Enables the fpga loads command which is used to load secure
+	  (authenticated or encrypted or both) bitstreams on to FPGA.
+
 config CMD_FPGAD
 	bool "fpgad - dump FPGA registers"
 	help
@@ -669,6 +739,7 @@ config CMD_GPT
 	bool "GPT (GUID Partition Table) command"
 	select PARTITION_UUIDS
 	select EFI_PARTITION
+	select HAVE_BLOCK_DEVICE
 	imply RANDOM_UUID
 	help
 	  Enable the 'gpt' command to ready and write GPT style partition
@@ -676,6 +747,7 @@ config CMD_GPT
 
 config RANDOM_UUID
 	bool "GPT Random UUID generation"
+	select LIB_UUID
 	help
 	  Enable the generation of partitions with random UUIDs if none
 	  are provided.
@@ -761,6 +833,21 @@ config CMD_MMC
 	help
 	  MMC memory mapped support.
 
+config CMD_MMC_RPMB
+	bool "Enable support for RPMB in the mmc command"
+	depends on CMD_MMC
+	help
+	  Enable the commands for reading, writing and programming the
+	  key for the Replay Protection Memory Block partition in eMMC.
+
+config CMD_MMC_SWRITE
+	bool "mmc swrite"
+	depends on CMD_MMC && MMC_WRITE
+	select IMAGE_SPARSE
+	help
+	  Enable support for the "mmc swrite" command to write Android sparse
+	  images to eMMC.
+
 config CMD_NAND
 	bool "nand"
 	default y if NAND_SUNXI
@@ -813,6 +900,7 @@ config CMD_ONENAND
 config CMD_PART
 	bool "part"
 	select PARTITION_UUIDS
+	select HAVE_BLOCK_DEVICE
 	help
 	  Read and display information about the partition table on
 	  various media.
@@ -863,6 +951,15 @@ config CMD_SAVES
 	  Provides a way to save a binary file using the Motorola S-Record
 	  format over the serial line.
 
+config CMD_SCSI
+	bool "scsi - Access to SCSI devices"
+	default y if SCSI
+	help
+	  This provides a 'scsi' command which provides access to SCSI (Small
+	  Computer System Interface) devices. The command provides a way to
+	  scan the bus, reset the bus, read and write data and get information
+	  about devices.
+
 config CMD_SDRAM
 	bool "sdram - Print SDRAM configuration information"
 	help
@@ -905,6 +1002,7 @@ config CMD_UNIVERSE
 
 config CMD_USB
 	bool "usb"
+	select HAVE_BLOCK_DEVICE
 	help
 	  USB support.
 
@@ -914,9 +1012,18 @@ config CMD_USB_SDP
 	help
 	  Enables the command "sdp" which is used to have U-Boot emulating the
 	  Serial Download Protocol (SDP) via USB.
+config CMD_ROCKUSB
+	bool "rockusb"
+	depends on USB_FUNCTION_ROCKUSB
+	help
+          Rockusb protocol is widely used by Rockchip SoC based devices. It can
+	  read/write info, image to/from devices. This enable rockusb command
+	  support to communication with rockusb device. for more detail about
+	  this command, please read doc/README.rockusb.
 
 config CMD_USB_MASS_STORAGE
 	bool "UMS usb mass storage"
+	select USB_FUNCTION_MASS_STORAGE
 	help
 	  USB mass storage support
 
@@ -954,42 +1061,140 @@ config CMD_SETEXPR
 
 endmenu
 
-menu "Network commands"
+if NET
 
-config CMD_NET
-	bool "bootp, tftpboot"
-        select NET
+menuconfig CMD_NET
+	bool "Network commands"
+	default y
+
+if CMD_NET
+
+config CMD_BOOTP
+	bool "bootp"
 	default y
 	help
-	  Network commands.
 	  bootp - boot image via network using BOOTP/TFTP protocol
+
+config CMD_DHCP
+	bool "dhcp"
+	depends on CMD_BOOTP
+	help
+	  Boot image via network using DHCP/TFTP protocol
+
+config BOOTP_BOOTPATH
+	bool "Request & store 'rootpath' from BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP
+	help
+	  Even though the config is called BOOTP_BOOTPATH, it stores the
+	  path in the variable 'rootpath'.
+
+config BOOTP_DNS
+	bool "Request & store 'dnsip' from BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP
+	help
+	  The primary DNS server is stored as 'dnsip'. If two servers are
+	  returned, you must set BOOTP_DNS2 to store that second server IP
+	  also.
+
+config BOOTP_DNS2
+	bool "Store 'dnsip2' from BOOTP/DHCP server"
+	depends on BOOTP_DNS
+	help
+	  If a DHCP client requests the DNS server IP from a DHCP server,
+	  it is possible that more than one DNS serverip is offered to the
+	  client. If CONFIG_BOOTP_DNS2 is enabled, the secondary DNS
+	  server IP will be stored in the additional environment
+	  variable "dnsip2". The first DNS serverip is always
+	  stored in the variable "dnsip", when BOOTP_DNS is defined.
+
+config BOOTP_GATEWAY
+	bool "Request & store 'gatewayip' from BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP
+
+config BOOTP_HOSTNAME
+	bool "Request & store 'hostname' from BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP
+	help
+	  The name may or may not be qualified with the local domain name.
+
+config BOOTP_PREFER_SERVERIP
+	bool "serverip variable takes precedent over DHCP server IP."
+	depends on CMD_BOOTP
+	help
+	  By default a BOOTP/DHCP reply will overwrite the 'serverip' variable.
+
+	  With this option enabled, the 'serverip' variable in the environment
+	  takes precedence over DHCP server IP and will only be set by the DHCP
+	  server if not already set in the environment.
+
+config BOOTP_SUBNETMASK
+	bool "Request & store 'netmask' from BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP
+
+config BOOTP_NTPSERVER
+	bool "Request & store 'ntpserverip' from BOOTP/DHCP server"
+	depends on CMD_BOOTP
+
+config BOOTP_PXE
+	bool "Send PXE client arch to BOOTP/DHCP server"
+	default y
+	depends on CMD_BOOTP && CMD_PXE
+	help
+	  Supported for ARM, ARM64, and x86 for now.
+
+config BOOTP_PXE_CLIENTARCH
+	hex
+	depends on BOOTP_PXE
+	default 0x16 if ARM64
+	default 0x15 if ARM
+	default 0 if X86
+
+config BOOTP_VCI_STRING
+	string
+	depends on CMD_BOOTP
+	default "U-Boot.armv7" if CPU_V7A || CPU_V7M || CPU_V7R
+	default "U-Boot.armv8" if ARM64
+	default "U-Boot.arm" if ARM
+	default "U-Boot"
+
+config CMD_TFTPBOOT
+	bool "tftpboot"
+	default y
+	help
 	  tftpboot - boot image via network using TFTP protocol
 
 config CMD_TFTPPUT
 	bool "tftp put"
+	depends on CMD_TFTPBOOT
 	help
 	  TFTP put command, for uploading files to a server
 
 config CMD_TFTPSRV
 	bool "tftpsrv"
+	depends on CMD_TFTPBOOT
 	help
 	  Act as a TFTP server and boot the first received file
+
+config NET_TFTP_VARS
+	bool "Control TFTP timeout and count through environment"
+	depends on CMD_TFTPBOOT
+	default y
+	help
+	  If set, allows controlling the TFTP timeout through the
+	  environment variable tftptimeout, and the TFTP maximum
+	  timeout count through the variable tftptimeoutcountmax.
+	  If unset, timeout and maximum are hard-defined as 1 second
+	  and 10 timouts per TFTP transfer.
 
 config CMD_RARP
 	bool "rarpboot"
 	help
 	  Boot image via network using RARP/TFTP protocol
-
-config CMD_DHCP
-	bool "dhcp"
-	help
-	  Boot image via network using DHCP/TFTP protocol
-
-config CMD_PXE
-	bool "pxe"
-	select MENU
-	help
-	  Boot image via network using PXE protocol
 
 config CMD_NFS
 	bool "nfs"
@@ -1024,8 +1229,11 @@ config CMD_DNS
 
 config CMD_LINK_LOCAL
 	bool "linklocal"
+	select LIB_RAND
 	help
 	  Acquire a network IP address using the link-local protocol
+
+endif
 
 config CMD_ETHSW
 	bool "ethsw"
@@ -1035,7 +1243,18 @@ config CMD_ETHSW
 	  operations such as enabling / disabling a port and
 	  viewing/maintaining the filtering database (FDB)
 
-endmenu
+config CMD_PXE
+	bool "pxe"
+	select MENU
+	help
+	  Boot image via network using PXE protocol
+
+config CMD_WOL
+	bool "wol"
+	help
+	  Wait for wake-on-lan Magic Packet
+
+endif
 
 menu "Misc commands"
 
@@ -1050,6 +1269,13 @@ config CMD_BMP
 	  determine the formats used. This command can be used by first loading
 	  the image into RAM, then using this command to look at it or display
 	  it.
+
+config CMD_BOOTCOUNT
+	bool "bootcount"
+	depends on BOOTCOUNT_LIMIT
+	help
+	  Enable the bootcount command, which allows interrogation and
+	  reset of the bootcounter.
 
 config CMD_BSP
 	bool "Enable board-specific commands"
@@ -1165,6 +1391,7 @@ config CMD_TERMINAL
 
 config CMD_UUID
 	bool "uuid, guid - generation of unique IDs"
+	select LIB_UUID
 	help
 	  This enables two commands:
 
@@ -1175,6 +1402,8 @@ config CMD_UUID
 	  output.
 
 endmenu
+
+source "cmd/ti/Kconfig"
 
 config CMD_BOOTSTAGE
 	bool "Enable the 'bootstage' command"
@@ -1283,30 +1512,56 @@ config CMD_HASH
 	  saved to memory or to an environment variable. It is also possible
 	  to verify a hash against data in memory.
 
+config CMD_HVC
+	bool "Support the 'hvc' command"
+	depends on ARM_SMCCC
+	help
+	  Allows issuing Hypervisor Calls (HVCs). Mostly useful for
+	  development and testing.
+
+config CMD_SMC
+	bool "Support the 'smc' command"
+	depends on ARM_SMCCC
+	help
+	  Allows issuing Secure Monitor Calls (SMCs). Mostly useful for
+	  development and testing.
+
 config HASH_VERIFY
 	bool "hash -v"
 	depends on CMD_HASH
 	help
 	  Add -v option to verify data against a hash.
 
+config CMD_TPM_V1
+	bool
+
+config CMD_TPM_V2
+	bool
+
 config CMD_TPM
 	bool "Enable the 'tpm' command"
-	depends on TPM
+	depends on TPM_V1 || TPM_V2
+	select CMD_TPM_V1 if TPM_V1
+	select CMD_TPM_V2 if TPM_V2
 	help
 	  This provides a means to talk to a TPM from the command line. A wide
 	  range of commands if provided - see 'tpm help' for details. The
 	  command requires a suitable TPM on your board and the correct driver
 	  must be enabled.
 
+if CMD_TPM
+
 config CMD_TPM_TEST
 	bool "Enable the 'tpm test' command"
-	depends on CMD_TPM
+	depends on TPM_V1
 	help
-	  This provides a a series of tests to confirm that the TPM is working
-	  correctly. The tests cover initialisation, non-volatile RAM, extend,
-	  global lock and checking that timing is within expectations. The
-	  tests pass correctly on Infineon TPMs but may need to be adjusted
+	  This provides a a series of tests to confirm that the TPMv1.x is
+	  working correctly. The tests cover initialisation, non-volatile RAM,
+	  extend, global lock and checking that timing is within expectations.
+	  The tests pass correctly on Infineon TPMs but may need to be adjusted
 	  for other devices.
+
+endif
 
 endmenu
 
@@ -1357,17 +1612,20 @@ config CMD_CRAMFS
 
 config CMD_EXT2
 	bool "ext2 command support"
+	select FS_EXT4
 	help
 	  Enables EXT2 FS command
 
 config CMD_EXT4
 	bool "ext4 command support"
+	select FS_EXT4
 	help
 	  Enables EXT4 FS command
 
 config CMD_EXT4_WRITE
 	depends on CMD_EXT4
 	bool "ext4 write command support"
+	select EXT4_WRITE
 	help
 	  Enables EXT4 FS write command
 
@@ -1435,15 +1693,6 @@ config CMD_REISER
 	    reiserls - list files
 	    reiserload - load a file
 
-config CMD_SCSI
-	bool "scsi - Access to SCSI devices"
-	default y if SCSI
-	help
-	  This provides a 'scsi' command which provides access to SCSI (Small
-	  Computer System Interface) devices. The command provides a way to
-	  scan the bus, reset the bus, read and write data and get information
-	  about devices.
-
 config CMD_YAFFS2
 	bool "yaffs2 - Access of YAFFS2 filesystem"
 	depends on YAFFS2
@@ -1504,6 +1753,7 @@ config CMD_KGDB
 
 config CMD_LOG
 	bool "log - Generation, control and access to logging"
+	select LOG
 	help
 	  This provides access to logging features. It allows the output of
 	  log data to be controlled to a limited extent (setting up the default
@@ -1519,6 +1769,22 @@ config CMD_TRACE
 	  for analsys (e.g. using bootchart). See doc/README.trace for full
 	  details.
 
+config CMD_AVB
+	bool "avb - Android Verified Boot 2.0 operations"
+	depends on LIBAVB
+	default n
+	help
+	  Enables a "avb" command to perform verification of partitions using
+	  Android Verified Boot 2.0 functionality. It includes such subcommands:
+	    avb init - initialize avb2 subsystem
+	    avb read_rb - read rollback index
+	    avb write_rb - write rollback index
+	    avb is_unlocked - check device lock state
+	    avb get_uuid - read and print uuid of a partition
+	    avb read_part - read data from partition
+	    avb read_part_hex - read data from partition and output to stdout
+	    avb write_part - write data to partition
+	    avb verify - run full verification chain
 endmenu
 
 config CMD_UBI

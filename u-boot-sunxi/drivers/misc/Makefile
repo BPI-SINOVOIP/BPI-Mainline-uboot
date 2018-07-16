@@ -1,9 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0+
 #
 # (C) Copyright 2000-2007
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
 
 obj-$(CONFIG_MISC) += misc-uclass.o
 obj-$(CONFIG_ALI152X) += ali512x.o
@@ -53,3 +51,6 @@ obj-$(CONFIG_WINBOND_W83627) += winbond_w83627.o
 obj-$(CONFIG_QFW) += qfw.o
 obj-$(CONFIG_ROCKCHIP_EFUSE) += rockchip-efuse.o
 obj-$(CONFIG_STM32_RCC) += stm32_rcc.o
+obj-$(CONFIG_STM32MP_FUSE) += stm32mp_fuse.o
+obj-$(CONFIG_SYS_DPAA_QBMAN) += fsl_portals.o
+obj-$(CONFIG_GDSYS_RXAUI_CTRL) += gdsys_rxaui_ctrl.o

@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2007-2008
  * Stelian Pop <stelian@popies.net>
  * Lead Tech Design <www.leadtechdesign.com>
  *
  * Configuation settings for the AT91SAM9263EK board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -17,17 +16,9 @@
  */
 #include <asm/hardware.h>
 
-#ifndef CONFIG_SYS_USE_BOOT_NORFLASH
-#define CONFIG_SYS_TEXT_BASE		0x21F00000
-#else
-#define CONFIG_SYS_TEXT_BASE		0x0000000
-#endif
-
 /* ARM asynchronous clock */
 #define CONFIG_SYS_AT91_MAIN_CLOCK	16367660 /* 16.367 MHz crystal */
 #define CONFIG_SYS_AT91_SLOW_CLOCK	32768
-
-#define CONFIG_AT91SAM9263EK	1	/* It's an AT91SAM9263EK Board */
 
 #define CONFIG_ARCH_CPU_INIT
 
@@ -59,9 +50,6 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE	1
-#define CONFIG_BOOTP_BOOTPATH		1
-#define CONFIG_BOOTP_GATEWAY		1
-#define CONFIG_BOOTP_HOSTNAME		1
 
 /* SDRAM */
 #define CONFIG_NR_DRAM_BANKS		1
@@ -246,15 +234,11 @@
 #elif CONFIG_SYS_USE_NANDFLASH
 
 /* bootstrap + u-boot + env + linux in nandflash */
-#define CONFIG_ENV_OFFSET		0x120000
+#define CONFIG_ENV_OFFSET		0x140000
 #define CONFIG_ENV_OFFSET_REDUND	0x100000
 #define CONFIG_ENV_SIZE		0x20000		/* 1 sector = 128 kB */
 #define CONFIG_BOOTCOMMAND	"nand read 0x22000000 0x200000 0x300000; bootm"
 #endif
-
-#define CONFIG_SYS_LONGHELP		1
-#define CONFIG_CMDLINE_EDITING		1
-#define CONFIG_AUTO_COMPLETE
 
 /*
  * Size of malloc() pool

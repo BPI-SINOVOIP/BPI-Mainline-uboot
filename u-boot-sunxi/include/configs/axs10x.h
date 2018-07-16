@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2013-2016 Synopsys, Inc. All rights reserved.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CONFIG_AXS10X_H_
@@ -29,7 +28,7 @@
 	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #define CONFIG_SYS_MALLOC_LEN		SZ_2M
-#define CONFIG_SYS_BOOTM_LEN		SZ_32M
+#define CONFIG_SYS_BOOTM_LEN		SZ_128M
 #define CONFIG_SYS_LOAD_ADDR		0x82000000
 
 /*
@@ -62,9 +61,6 @@
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS 1
 
-#define CONFIG_AUTO_COMPLETE
-#define CONFIG_CMDLINE_EDITING
-
 /*
  * Environment settings
  */
@@ -79,7 +75,6 @@
 /*
  * Console configuration
  */
-#define CONFIG_SYS_LONGHELP
 
 /*
  * Misc utility configuration

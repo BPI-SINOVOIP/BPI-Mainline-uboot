@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2013 Gateworks Corporation
- *
- * SPDX-License-Identifier: GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -24,7 +23,6 @@
 
 #include "imx6_spl.h"                  /* common IMX6 SPL configuration */
 #include "mx6_common.h"
-#define CONFIG_DISPLAY_BOARDINFO_LATE
 
 #define CONFIG_MACH_TYPE	4520   /* Gateworks Ventana Platform */
 
@@ -54,7 +52,6 @@
 
 /* SPI */
 #ifdef CONFIG_CMD_SF
-  #define CONFIG_MXC_SPI
   #define CONFIG_SPI_FLASH_MTD
   #define CONFIG_SPI_FLASH_BAR
   #define CONFIG_SF_DEFAULT_BUS              0
@@ -67,16 +64,12 @@
 #elif defined(CONFIG_SPL_NAND_SUPPORT)
 /* Enable NAND support */
 #ifdef CONFIG_CMD_NAND
-  #define CONFIG_NAND_MXS
   #define CONFIG_SYS_MAX_NAND_DEVICE	1
   #define CONFIG_SYS_NAND_BASE		0x40000000
   #define CONFIG_SYS_NAND_5_ADDR_CYCLE
   #define CONFIG_SYS_NAND_ONFI_DETECTION
 
   /* DMA stuff, needed for GPMI/MXS NAND support */
-  #define CONFIG_APBH_DMA
-  #define CONFIG_APBH_DMA_BURST
-  #define CONFIG_APBH_DMA_BURST8
 #endif
 
 #endif /* CONFIG_SPI_FLASH */
@@ -96,7 +89,6 @@
 
 /* eMMC Configs */
 #define CONFIG_SUPPORT_EMMC_BOOT
-#define CONFIG_SUPPORT_EMMC_RPMB
 
 /*
  * SATA Configs
@@ -145,9 +137,6 @@
 #define CONFIG_MXC_USB_FLAGS      0
 #define CONFIG_USBD_HS
 #define CONFIG_NETCONSOLE
-
-/* USB Mass Storage Gadget */
-#define CONFIG_USB_FUNCTION_MASS_STORAGE
 
 /* Framebuffer and LCD */
 #define CONFIG_VIDEO_IPUV3

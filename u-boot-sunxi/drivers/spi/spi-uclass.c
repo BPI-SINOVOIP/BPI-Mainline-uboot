@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2014 Google, Inc
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -50,7 +49,6 @@ int dm_spi_claim_bus(struct udevice *dev)
 	struct dm_spi_bus *spi = dev_get_uclass_priv(bus);
 	struct spi_slave *slave = dev_get_parent_priv(dev);
 	int speed;
-	int ret;
 
 	speed = slave->max_hz;
 	if (spi->max_hz) {
@@ -62,7 +60,8 @@ int dm_spi_claim_bus(struct udevice *dev)
 	if (!speed)
 		speed = 100000;
 	if (speed != slave->speed) {
-		ret = spi_set_speed_mode(bus, speed, slave->mode);
+		int ret = spi_set_speed_mode(bus, speed, slave->mode);
+
 		if (ret)
 			return ret;
 		slave->speed = speed;
@@ -128,7 +127,6 @@ static int spi_post_probe(struct udevice *bus)
 #endif
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
 	struct dm_spi_ops *ops = spi_get_ops(bus);
-
 
 	if (ops->claim_bus)
 		ops->claim_bus += gd->reloc_off;
@@ -345,22 +343,6 @@ err:
 	}
 
 	return ret;
-}
-
-/* Compatibility function - to be removed */
-struct spi_slave *spi_setup_slave_fdt(const void *blob, int node,
-				      int bus_node)
-{
-	struct udevice *bus, *dev;
-	int ret;
-
-	ret = uclass_get_device_by_of_offset(UCLASS_SPI, bus_node, &bus);
-	if (ret)
-		return NULL;
-	ret = device_get_child_by_of_offset(bus, node, &dev);
-	if (ret)
-		return NULL;
-	return dev_get_parent_priv(dev);
 }
 
 /* Compatibility function - to be removed */

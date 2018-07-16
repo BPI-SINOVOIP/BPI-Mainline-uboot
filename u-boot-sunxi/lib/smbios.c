@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2015, Bin Meng <bmeng.cn@gmail.com>
  *
  * Adapted from coreboot src/arch/x86/smbios.c
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -15,8 +14,6 @@
 #include <dm.h>
 #include <dm/uclass-internal.h>
 #endif
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /**
  * smbios_add_string() - add a string to the string area

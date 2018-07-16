@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2014 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -10,8 +9,6 @@
 #include <fdtdec.h>
 #include <inttypes.h>
 #include <pci.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 static int sandbox_pci_write_config(struct udevice *bus, pci_dev_t devfn,
 				    uint offset, ulong value,

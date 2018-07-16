@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2011 Andes Technology Corporation
  * Shawn Lin, Andes Technology Corporation <nobuhiro@andestech.com>
  * Macpaul Lin, Andes Technology Corporation <macpaul@andestech.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -14,13 +13,9 @@
 /*
  * CPU and Board Configuration Options
  */
-#define CONFIG_ADP_AG101P
-
 #define CONFIG_USE_INTERRUPT
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
-
-#define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_ARCH_MAP_SYSMEM
 
@@ -32,16 +27,9 @@
 #endif
 
 #ifdef CONFIG_SKIP_LOWLEVEL_INIT
-#define CONFIG_SYS_TEXT_BASE	0x00500000
 #ifdef CONFIG_OF_CONTROL
 #undef CONFIG_OF_SEPARATE
 #define CONFIG_OF_EMBED
-#endif
-#else
-#ifdef CONFIG_MEM_REMAP
-#define CONFIG_SYS_TEXT_BASE	0x80000000
-#else
-#define CONFIG_SYS_TEXT_BASE	0x00000000
 #endif
 #endif
 
@@ -86,7 +74,6 @@
  */
 
 /* FTUART is a high speed NS 16C550A compatible UART, addr: 0x99600000 */
-#define CONFIG_CONS_INDEX		1
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_COM1		CONFIG_FTUART010_02_BASE
 #ifndef CONFIG_DM_SERIAL
@@ -95,15 +82,8 @@
 #define CONFIG_SYS_NS16550_CLK		((18432000 * 20) / 25)	/* AG101P */
 
 /*
- * SD (MMC) controller
- */
-#define CONFIG_FTSDC010_NUMBER		1
-#define CONFIG_FTSDC010_SDIO
-
-/*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP			/* undef to save memory */
 
 /*
  * Size of malloc() pool

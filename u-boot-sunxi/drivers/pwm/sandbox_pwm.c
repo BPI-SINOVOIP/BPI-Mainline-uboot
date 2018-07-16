@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2015 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -10,8 +9,6 @@
 #include <errno.h>
 #include <pwm.h>
 #include <asm/test.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 enum {
 	NUM_CHANNELS	= 3,

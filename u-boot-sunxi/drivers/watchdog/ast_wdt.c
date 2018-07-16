@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2017 Google, Inc
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -13,8 +12,6 @@
 
 #define WDT_AST2500	2500
 #define WDT_AST2400	2400
-
-DECLARE_GLOBAL_DATA_PTR;
 
 struct ast_wdt_priv {
 	struct ast_wdt *regs;

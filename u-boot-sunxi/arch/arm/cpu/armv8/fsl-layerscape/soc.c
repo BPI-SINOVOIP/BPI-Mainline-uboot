@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright 2014-2015 Freescale Semiconductor
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -25,8 +24,6 @@
 #include <fsl_validate.h>
 #endif
 #include <fsl_immap.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 bool soc_has_dp_ddr(void)
 {
@@ -341,6 +338,8 @@ int sata_init(void)
 #ifdef CONFIG_SYS_SATA2
 	ccsr_ahci  = (void *)CONFIG_SYS_SATA2;
 	out_le32(&ccsr_ahci->ppcfg, AHCI_PORT_PHY_1_CFG);
+	out_le32(&ccsr_ahci->pp2c, AHCI_PORT_PHY2_CFG);
+	out_le32(&ccsr_ahci->pp3c, AHCI_PORT_PHY3_CFG);
 	out_le32(&ccsr_ahci->ptc, AHCI_PORT_TRANS_CFG);
 	out_le32(&ccsr_ahci->axicc, AHCI_PORT_AXICC_CFG);
 #endif
@@ -348,6 +347,8 @@ int sata_init(void)
 #ifdef CONFIG_SYS_SATA1
 	ccsr_ahci  = (void *)CONFIG_SYS_SATA1;
 	out_le32(&ccsr_ahci->ppcfg, AHCI_PORT_PHY_1_CFG);
+	out_le32(&ccsr_ahci->pp2c, AHCI_PORT_PHY2_CFG);
+	out_le32(&ccsr_ahci->pp3c, AHCI_PORT_PHY3_CFG);
 	out_le32(&ccsr_ahci->ptc, AHCI_PORT_TRANS_CFG);
 	out_le32(&ccsr_ahci->axicc, AHCI_PORT_AXICC_CFG);
 
@@ -359,6 +360,45 @@ int sata_init(void)
 }
 #endif
 
+/* Get VDD in the unit mV from voltage ID */
+int get_core_volt_from_fuse(void)
+{
+	struct ccsr_gur *gur = (void *)(CONFIG_SYS_FSL_GUTS_ADDR);
+	int vdd;
+	u32 fusesr;
+	u8 vid;
+
+	/* get the voltage ID from fuse status register */
+	fusesr = in_le32(&gur->dcfg_fusesr);
+	debug("%s: fusesr = 0x%x\n", __func__, fusesr);
+	vid = (fusesr >> FSL_CHASSIS3_DCFG_FUSESR_ALTVID_SHIFT) &
+		FSL_CHASSIS3_DCFG_FUSESR_ALTVID_MASK;
+	if ((vid == 0) || (vid == FSL_CHASSIS3_DCFG_FUSESR_ALTVID_MASK)) {
+		vid = (fusesr >> FSL_CHASSIS3_DCFG_FUSESR_VID_SHIFT) &
+			FSL_CHASSIS3_DCFG_FUSESR_VID_MASK;
+	}
+	debug("%s: VID = 0x%x\n", __func__, vid);
+	switch (vid) {
+	case 0x00: /* VID isn't supported */
+		vdd = -EINVAL;
+		debug("%s: The VID feature is not supported\n", __func__);
+		break;
+	case 0x08: /* 0.9V silicon */
+		vdd = 900;
+		break;
+	case 0x10: /* 1.0V silicon */
+		vdd = 1000;
+		break;
+	default:  /* Other core voltage */
+		vdd = -EINVAL;
+		debug("%s: The VID(%x) isn't supported\n", __func__, vid);
+		break;
+	}
+	debug("%s: The required minimum volt of CORE is %dmV\n", __func__, vdd);
+
+	return vdd;
+}
+
 #elif defined(CONFIG_FSL_LSCH2)
 #ifdef CONFIG_SCSI_AHCI_PLAT
 int sata_init(void)
@@ -368,6 +408,8 @@ int sata_init(void)
 	/* Disable SATA ECC */
 	out_le32((void *)CONFIG_SYS_DCSR_DCFG_ADDR + 0x520, 0x80000000);
 	out_le32(&ccsr_ahci->ppcfg, AHCI_PORT_PHY_1_CFG);
+	out_le32(&ccsr_ahci->pp2c, AHCI_PORT_PHY2_CFG);
+	out_le32(&ccsr_ahci->pp3c, AHCI_PORT_PHY3_CFG);
 	out_le32(&ccsr_ahci->ptc, AHCI_PORT_TRANS_CFG);
 	out_le32(&ccsr_ahci->axicc, AHCI_PORT_AXICC_CFG);
 
@@ -475,6 +517,7 @@ static void erratum_a010539(void)
 	porsr1 &= ~FSL_CHASSIS2_CCSR_PORSR1_RCW_MASK;
 	out_be32((void *)(CONFIG_SYS_DCSR_DCFG_ADDR + DCFG_DCSR_PORCR1),
 		 porsr1);
+	out_be32((void *)(CONFIG_SYS_FSL_SCFG_ADDR + 0x1a8), 0xffffffff);
 #endif
 }
 
@@ -566,6 +609,29 @@ int setup_chip_volt(void)
 
 	return 0;
 }
+
+#ifdef CONFIG_FSL_PFE
+void init_pfe_scfg_dcfg_regs(void)
+{
+	struct ccsr_scfg *scfg = (struct ccsr_scfg *)CONFIG_SYS_FSL_SCFG_ADDR;
+	u32 ecccr2;
+
+	out_be32(&scfg->pfeasbcr,
+		 in_be32(&scfg->pfeasbcr) | SCFG_PFEASBCR_AWCACHE0);
+	out_be32(&scfg->pfebsbcr,
+		 in_be32(&scfg->pfebsbcr) | SCFG_PFEASBCR_AWCACHE0);
+
+	/* CCI-400 QoS settings for PFE */
+	out_be32(&scfg->wr_qos1, (unsigned int)(SCFG_WR_QOS1_PFE1_QOS
+		 | SCFG_WR_QOS1_PFE2_QOS));
+	out_be32(&scfg->rd_qos1, (unsigned int)(SCFG_RD_QOS1_PFE1_QOS
+		 | SCFG_RD_QOS1_PFE2_QOS));
+
+	ecccr2 = in_be32(CONFIG_SYS_DCSR_DCFG_ADDR + DCFG_DCSR_ECCCR2);
+	out_be32((void *)CONFIG_SYS_DCSR_DCFG_ADDR + DCFG_DCSR_ECCCR2,
+		 ecccr2 | (unsigned int)DISABLE_PFE_ECC);
+}
+#endif
 
 void fsl_lsch2_early_init_f(void)
 {

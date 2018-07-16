@@ -1,6 +1,4 @@
-/*
- * SPDX-License-Identifier:    GPL-2.0+
- */
+/* SPDX-License-Identifier: GPL-2.0+ */
 
 #ifndef XIL_IO_H /* prevent circular inclusions */
 #define XIL_IO_H
@@ -10,18 +8,6 @@
 #include <common.h>
 
 #define xil_printf(...)
-
-void Xil_ICacheEnable(void)
-{}
-
-void Xil_DCacheEnable(void)
-{}
-
-void Xil_ICacheDisable(void)
-{}
-
-void Xil_DCacheDisable(void)
-{}
 
 void Xil_Out32(unsigned long addr, unsigned long val)
 {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /*
  *	Copied from Linux Monitor (LiMon) - Networking.
  *
@@ -6,7 +7,6 @@
  *	Copyright 2000 Roland Borde
  *	Copyright 2000 Paolo Scaffardi
  *	Copyright 2000-2002 Wolfgang Denk, wd@denx.de
- *	SPDX-License-Identifier:	GPL-2.0
  */
 
 #include "ping.h"
@@ -107,7 +107,8 @@ void ping_receive(struct ethernet_hdr *et, struct ip_udp_hdr *ip, int len)
 		icmph->type = ICMP_ECHO_REPLY;
 		icmph->checksum = 0;
 		icmph->checksum = compute_ip_checksum(icmph, len - IP_HDR_SIZE);
-		net_send_packet((uchar *)et, eth_hdr_size + len);
+		memcpy(net_tx_packet, et, eth_hdr_size + len);
+		net_send_packet(net_tx_packet, eth_hdr_size + len);
 		return;
 /*	default:
 		return;*/

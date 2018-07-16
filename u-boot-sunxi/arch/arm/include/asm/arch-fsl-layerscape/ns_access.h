@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2015 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __FSL_NS_ACCESS_H_
@@ -26,6 +25,7 @@ enum csu_cslx_ind {
 	CSU_CSLX_PCIE3_IO,
 	CSU_CSLX_USB3 = 20,
 	CSU_CSLX_USB2,
+	CSU_CSLX_PFE = 23,
 	CSU_CSLX_SERDES = 32,
 	CSU_CSLX_QDMA,
 	CSU_CSLX_LPUART2,
@@ -105,6 +105,7 @@ static struct csu_ns_dev ns_dev[] = {
 	 {CSU_CSLX_PCIE3_IO, CSU_ALL_RW},
 	 {CSU_CSLX_USB3, CSU_ALL_RW},
 	 {CSU_CSLX_USB2, CSU_ALL_RW},
+	 {CSU_CSLX_PFE, CSU_ALL_RW},
 	 {CSU_CSLX_SERDES, CSU_ALL_RW},
 	 {CSU_CSLX_QDMA, CSU_ALL_RW},
 	 {CSU_CSLX_LPUART2, CSU_ALL_RW},

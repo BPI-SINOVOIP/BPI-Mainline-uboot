@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -18,9 +17,6 @@
 #define CONFIG_E300		1	/* E300 Family */
 #define CONFIG_MPC834x		1	/* MPC834x specific */
 #define CONFIG_MPC8349		1	/* MPC8349 specific */
-#define CONFIG_TQM834X		1	/* TQM834X board specific */
-
-#define	CONFIG_SYS_TEXT_BASE	0x80000000
 
 /* IMMR Base Address Register, use Freescale default: 0xff400000 */
 #define CONFIG_SYS_IMMR		0xff400000
@@ -43,7 +39,6 @@
 /* board pre init: do not call, nothing to do */
 
 /* detect the number of flash banks */
-#define CONFIG_BOARD_EARLY_INIT_R
 
 /*
  * DDR Setup
@@ -154,7 +149,6 @@
 /*
  * Serial Port
  */
-#define CONFIG_CONS_INDEX	1
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_bus_freq(0)
@@ -187,7 +181,6 @@
 /*
  * TSEC
  */
-#define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_MII
 
 #define CONFIG_SYS_TSEC1_OFFSET	0x24000
@@ -260,18 +253,11 @@
  * BOOTP options
  */
 #define CONFIG_BOOTP_BOOTFILESIZE
-#define CONFIG_BOOTP_BOOTPATH
-#define CONFIG_BOOTP_GATEWAY
-#define CONFIG_BOOTP_HOSTNAME
 
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_SYS_LONGHELP			/* undef to save memory	*/
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-
-#define CONFIG_CMDLINE_EDITING	1	/* add command line history */
-#define CONFIG_AUTO_COMPLETE		/* add autocompletion support */
 
 #undef CONFIG_WATCHDOG		/* watchdog disabled */
 

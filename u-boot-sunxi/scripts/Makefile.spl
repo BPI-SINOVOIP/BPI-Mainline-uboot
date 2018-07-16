@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0+
 #
 # (C) Copyright 2000-2011
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -8,9 +9,6 @@
 # (C) Copyright 2011
 # Texas Instruments Incorporated - http://www.ti.com/
 # Aneesh V <aneesh@ti.com>
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
 # Based on top-level Makefile.
 #
 
@@ -49,6 +47,8 @@ endif
 
 include $(srctree)/config.mk
 include $(srctree)/arch/$(ARCH)/Makefile
+
+include $(srctree)/scripts/Makefile.lib
 
 # Enable garbage collection of un-used sections for SPL
 KBUILD_CFLAGS += -ffunction-sections -fdata-sections
@@ -142,7 +142,7 @@ MKIMAGEOUTPUT ?= /dev/null
 
 quiet_cmd_mkimage = MKIMAGE $@
 cmd_mkimage = $(objtree)/tools/mkimage $(MKIMAGEFLAGS_$(@F)) -d $< $@ \
-	$(if $(KBUILD_VERBOSE:1=), >$(MKIMAGEOUTPUT))
+	>$(MKIMAGEOUTPUT) $(if $(KBUILD_VERBOSE:0=), && cat $(MKIMAGEOUTPUT))
 
 MKIMAGEFLAGS_MLO = -T omapimage -a $(CONFIG_SPL_TEXT_BASE)
 
@@ -167,8 +167,14 @@ ifdef CONFIG_ARCH_ZYNQ
 MKIMAGEFLAGS_boot.bin = -T zynqimage -R $(srctree)/$(CONFIG_BOOT_INIT_FILE)
 endif
 ifdef CONFIG_ARCH_ZYNQMP
+ifneq ($(CONFIG_PMUFW_INIT_FILE),"")
+spl/boot.bin: zynqmp-check-pmufw
+zynqmp-check-pmufw: FORCE
+	( cd $(srctree) && test -r $(CONFIG_PMUFW_INIT_FILE) ) \
+		|| ( echo "Cannot read $(CONFIG_PMUFW_INIT_FILE)" && false )
+endif
 MKIMAGEFLAGS_boot.bin = -T zynqmpimage -R $(srctree)/$(CONFIG_BOOT_INIT_FILE) \
-	-n $(srctree)/$(CONFIG_PMUFW_INIT_FILE)
+	-n "$(shell cd $(srctree); readlink -f $(CONFIG_PMUFW_INIT_FILE))"
 endif
 
 spl/boot.bin: $(obj)/u-boot-spl.bin FORCE
@@ -307,7 +313,11 @@ LDFLAGS_$(SPL_BIN) += -Ttext $(CONFIG_SPL_TEXT_BASE)
 endif
 endif
 
+ifdef CONFIG_TARGET_SOCFPGA_ARRIA10
+MKIMAGEFLAGS_$(SPL_BIN).sfp = -T socfpgaimage_v1
+else
 MKIMAGEFLAGS_$(SPL_BIN).sfp = -T socfpgaimage
+endif
 $(obj)/$(SPL_BIN).sfp: $(obj)/$(SPL_BIN).bin FORCE
 	$(call if_changed,mkimage)
 
@@ -387,6 +397,10 @@ MKIMAGEFLAGS_$(SPL_BIN).multidtb.fit = -f auto -A $(ARCH) -T firmware -C none -O
 
 $(obj)/$(SPL_BIN).multidtb.fit: /dev/null $(SHRUNK_ARCH_DTB) FORCE
 	$(call if_changed,mkimage)
+ifneq ($(SOURCE_DATE_EPOCH),)
+	touch -d @$(SOURCE_DATE_EPOCH) $(obj)/$(SPL_BIN).multidtb.fit
+	chmod 0600 $(obj)/$(SPL_BIN).multidtb.fit
+endif
 
 $(obj)/$(SPL_BIN).multidtb.fit.gz: $(obj)/$(SPL_BIN).multidtb.fit
 	@gzip -kf9 $< > $@

@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2011
  * Marvell Semiconductor <www.marvell.com>
  * Written-by: Lei Wen <leiwen@marvell.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -56,7 +55,6 @@
  * SPI Flash configuration
  */
 #ifdef CONFIG_CMD_SF
-#define CONFIG_KIRKWOOD_SPI
 #ifndef CONFIG_ENV_SPI_BUS
 # define CONFIG_ENV_SPI_BUS		0
 #endif

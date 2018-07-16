@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2013 Freescale Semiconductor, Inc.
  *
  * Configuration settings for Udoo board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -45,8 +44,6 @@
 
 /* MMC Configuration */
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
-
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"script=boot.scr\0" \

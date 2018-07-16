@@ -1,7 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0
 # Copyright (c) 2015 Stephen Warren
 # Copyright (c) 2015-2016, NVIDIA CORPORATION. All rights reserved.
-#
-# SPDX-License-Identifier: GPL-2.0
 
 # Implementation of pytest run-time hook functions. These are invoked by
 # pytest at certain points during operation, e.g. startup, for each executed
@@ -344,6 +343,7 @@ tests_failed = []
 tests_xpassed = []
 tests_xfailed = []
 tests_skipped = []
+tests_warning = []
 tests_passed = []
 
 def pytest_itemcollected(item):
@@ -380,6 +380,11 @@ def cleanup():
     if log:
         with log.section('Status Report', 'status_report'):
             log.status_pass('%d passed' % len(tests_passed))
+            if tests_warning:
+                log.status_warning('%d passed with warning' % len(tests_warning))
+                for test in tests_warning:
+                    anchor = anchors.get(test, None)
+                    log.status_warning('... ' + test, anchor)
             if tests_skipped:
                 log.status_skipped('%d skipped' % len(tests_skipped))
                 for test in tests_skipped:
@@ -520,7 +525,9 @@ def pytest_runtest_protocol(item, nextitem):
         A list of pytest reports (test result data).
     """
 
+    log.get_and_reset_warning()
     reports = runtestprotocol(item, nextitem=nextitem)
+    was_warning = log.get_and_reset_warning()
 
     # In pytest 3, runtestprotocol() may not call pytest_runtest_setup() if
     # the test is skipped. That call is required to create the test's section
@@ -531,9 +538,14 @@ def pytest_runtest_protocol(item, nextitem):
         start_test_section(item)
 
     failure_cleanup = False
-    test_list = tests_passed
-    msg = 'OK'
-    msg_log = log.status_pass
+    if not was_warning:
+        test_list = tests_passed
+        msg = 'OK'
+        msg_log = log.status_pass
+    else:
+        test_list = tests_warning
+        msg = 'OK (with warning)'
+        msg_log = log.status_warning
     for report in reports:
         if report.outcome == 'failed':
             if hasattr(report, 'wasxfail'):

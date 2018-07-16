@@ -1,15 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Allwinner DE2 display driver
  *
  * (C) Copyright 2017 Jernej Skrabec <jernej.skrabec@siol.net>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <display.h>
 #include <dm.h>
 #include <edid.h>
+#include <efi_loader.h>
 #include <fdtdec.h>
 #include <fdt_support.h>
 #include <video.h>
@@ -221,6 +221,13 @@ static int sunxi_de2_init(struct udevice *dev, ulong fbbase,
 	uc_priv->ysize = timing.vactive.typ;
 	uc_priv->bpix = l2bpp;
 	debug("fb=%lx, size=%d %d\n", fbbase, uc_priv->xsize, uc_priv->ysize);
+
+#ifdef CONFIG_EFI_LOADER
+	efi_add_memory_map(fbbase,
+			   ALIGN(timing.hactive.typ * timing.vactive.typ *
+			   (1 << l2bpp) / 8, EFI_PAGE_SIZE) >> EFI_PAGE_SHIFT,
+			   EFI_RESERVED_MEMORY_TYPE, false);
+#endif
 
 	return 0;
 }

@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (c) 2017 Intel Corp.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -10,7 +9,6 @@
 #include <asm/ibmpc.h>
 
 /* ACPI */
-#define CONFIG_LAST_STAGE_INIT
 
 /* Boot */
 #define CONFIG_BOOTCOMMAND "run bootcmd"
@@ -18,13 +16,10 @@
 /* DISK Partition support */
 
 /* Miscellaneous configurable options */
-#define CONFIG_SYS_LONGHELP
 
 #define CONFIG_SYS_CBSIZE	2048
 #define CONFIG_SYS_MAXARGS	128
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
-
-#define CONFIG_AUTO_COMPLETE
 
 /* Memory */
 #define CONFIG_SYS_LOAD_ADDR			0x100000

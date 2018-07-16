@@ -68,6 +68,12 @@ config PMUFW_INIT_FILE
 config ZYNQMP_USB
 	bool "Configure ZynqMP USB"
 
+config ZYNQMP_NO_DDR
+	bool "Disable DDR MMU mapping"
+	help
+	  This option configures MMU with no DDR to avoid speculative
+	  access to DDR memory where DDR is not present.
+
 config SYS_MALLOC_F_LEN
 	default 0x600
 
@@ -90,6 +96,9 @@ config SPL_ZYNQMP_ALT_BOOTMODE_ENABLED
 	  Overwrite bootmode selected via boot mode pins to tell SPL what should
 	  be the next boot device.
 
+config ZYNQ_SDHCI_MAX_FREQ
+	default 200000000
+
 config SPL_ZYNQMP_ALT_BOOTMODE
 	hex
 	default 0x0 if JTAG_MODE
@@ -107,7 +116,7 @@ config SPL_ZYNQMP_ALT_BOOTMODE
 choice
 	prompt "Boot mode"
 	depends on SPL_ZYNQMP_ALT_BOOTMODE_ENABLED
-	default JTAG
+	default JTAG_MODE
 
 config JTAG_MODE
 	bool "JTAG_MODE"

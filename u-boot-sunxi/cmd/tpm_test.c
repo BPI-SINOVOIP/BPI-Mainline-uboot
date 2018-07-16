@@ -1,13 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2015 Google, Inc
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <command.h>
 #include <environment.h>
-#include <tpm.h>
+#include <tpm-v1.h>
 
 /* Prints error and returns on failure */
 #define TPM_CHECK(tpm_command) do { \

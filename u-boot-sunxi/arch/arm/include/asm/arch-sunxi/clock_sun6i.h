@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * sun6i clock register definitions
  *
  * (C) Copyright 2007-2011
  * Allwinner Technology Co., Ltd. <www.allwinnertech.com>
  * Tom Cubie <tangliang@allwinnertech.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _SUNXI_CLOCK_SUN6I_H
@@ -192,6 +191,7 @@ struct sunxi_ccm_reg {
 #define ATB_DIV_1			0
 #define ATB_DIV_2			1
 #define ATB_DIV_4			2
+#define AHB_DIV_1			0
 #define CPU_CLK_SRC_OSC24M		1
 #define CPU_CLK_SRC_PLL1		2
 
@@ -270,21 +270,33 @@ struct sunxi_ccm_reg {
 #define AXI_GATE_OFFSET_DRAM		0
 
 /* ahb_gate0 offsets */
-#define AHB_GATE_OFFSET_USB_OHCI1	30
-#define AHB_GATE_OFFSET_USB_OHCI0	29
 #ifdef CONFIG_MACH_SUNXI_H3_H5
 /*
  * These are EHCI1 - EHCI3 in the datasheet (EHCI0 is for the OTG) we call
  * them 0 - 2 like they were called on older SoCs.
  */
-#define AHB_GATE_OFFSET_USB_EHCI2	27
-#define AHB_GATE_OFFSET_USB_EHCI1	26
-#define AHB_GATE_OFFSET_USB_EHCI0	25
+#define AHB_GATE_OFFSET_USB_OHCI3	31
+#define AHB_GATE_OFFSET_USB_OHCI2	30
+#define AHB_GATE_OFFSET_USB_OHCI1	29
+#define AHB_GATE_OFFSET_USB_OHCI0	28
+#define AHB_GATE_OFFSET_USB_EHCI3	27
+#define AHB_GATE_OFFSET_USB_EHCI2	26
+#define AHB_GATE_OFFSET_USB_EHCI1	25
+#define AHB_GATE_OFFSET_USB_EHCI0	24
+#elif defined(CONFIG_MACH_SUN50I)
+#define AHB_GATE_OFFSET_USB_OHCI0	28
+#define AHB_GATE_OFFSET_USB_OHCI1	29
+#define AHB_GATE_OFFSET_USB_EHCI0	24
+#define AHB_GATE_OFFSET_USB_EHCI1	25
 #else
+#define AHB_GATE_OFFSET_USB_OHCI1	30
+#define AHB_GATE_OFFSET_USB_OHCI0	29
 #define AHB_GATE_OFFSET_USB_EHCI1	27
 #define AHB_GATE_OFFSET_USB_EHCI0	26
 #endif
-#ifndef CONFIG_MACH_SUN8I_R40
+#if defined(CONFIG_MACH_SUN50I) || defined(CONFIG_MACH_SUNXI_H3_H5)
+#define AHB_GATE_OFFSET_USB0		23
+#elif !defined(CONFIG_MACH_SUN8I_R40)
 #define AHB_GATE_OFFSET_USB0		24
 #else
 #define AHB_GATE_OFFSET_USB0		25
@@ -317,6 +329,11 @@ struct sunxi_ccm_reg {
 #define AHB_GATE_OFFSET_LCD0		3
 #endif
 
+#define CCM_NAND_CTRL_M(x)		((x) - 1)
+#define CCM_NAND_CTRL_N(x)		((x) << 16)
+#define CCM_NAND_CTRL_PLL6		(0x1 << 24)
+#define CCM_NAND_CTRL_ENABLE		(0x1 << 31)
+
 #define CCM_MMC_CTRL_M(x)		((x) - 1)
 #define CCM_MMC_CTRL_OCLK_DLY(x)	((x) << 8)
 #define CCM_MMC_CTRL_N(x)		((x) << 16)
@@ -339,13 +356,10 @@ struct sunxi_ccm_reg {
 #define CCM_USB_CTRL_PHY2_CLK (0x1 << 10)
 #define CCM_USB_CTRL_PHY3_CLK (0x1 << 11)
 #ifdef CONFIG_MACH_SUNXI_H3_H5
-/*
- * These are OHCI1 - OHCI3 in the datasheet (OHCI0 is for the OTG) we call
- * them 0 - 2 like they were called on older SoCs.
- */
-#define CCM_USB_CTRL_OHCI0_CLK (0x1 << 17)
-#define CCM_USB_CTRL_OHCI1_CLK (0x1 << 18)
-#define CCM_USB_CTRL_OHCI2_CLK (0x1 << 19)
+#define CCM_USB_CTRL_OHCI0_CLK (0x1 << 16)
+#define CCM_USB_CTRL_OHCI1_CLK (0x1 << 17)
+#define CCM_USB_CTRL_OHCI2_CLK (0x1 << 18)
+#define CCM_USB_CTRL_OHCI3_CLK (0x1 << 19)
 #else
 #define CCM_USB_CTRL_OHCI0_CLK (0x1 << 16)
 #define CCM_USB_CTRL_OHCI1_CLK (0x1 << 17)

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2012 Henrik Nordstrom <henrik@henriknordstrom.net>
  *
@@ -6,8 +7,6 @@
  * Tom Cubie <tangliang@allwinnertech.com>
  *
  * Some init for sunxi platform.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -208,10 +207,6 @@ void s_init(void)
 	eth_init_board();
 }
 
-#ifdef CONFIG_SPL_BUILD
-DECLARE_GLOBAL_DATA_PTR;
-#endif
-
 /* The sunxi internal brom will try to loader external bootloader
  * from mmc0, nand flash, mmc2.
  */
@@ -258,12 +253,6 @@ uint32_t sunxi_get_boot_device(void)
 u32 spl_boot_device(void)
 {
 	return sunxi_get_boot_device();
-}
-
-/* No confirmation data available in SPL yet. Hardcode bootmode */
-u32 spl_boot_mode(const u32 boot_device)
-{
-	return MMCSD_MODE_RAW;
 }
 
 void board_init_f(ulong dummy)

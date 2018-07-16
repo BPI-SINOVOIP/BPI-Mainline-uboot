@@ -1,7 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2016 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __LS1012ARDB_H__
@@ -16,7 +15,6 @@
 #define CONFIG_SYS_SDRAM_SIZE		0x20000000
 #define CONFIG_CHIP_SELECTS_PER_CTRL	1
 #define CONFIG_CMD_MEMINFO
-#define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_MEMTEST_START	0x80000000
 #define CONFIG_SYS_MEMTEST_END		0x9fffffff
 
@@ -68,10 +66,9 @@
 		"$kernel_addr $kernel_size && bootm $load_addr#$board\0"
 
 #undef CONFIG_BOOTCOMMAND
-#define CONFIG_BOOTCOMMAND "run distro_bootcmd;run qspi_bootcmd"
+#define CONFIG_BOOTCOMMAND "pfe stop;run distro_bootcmd;run qspi_bootcmd"
 
 #define CONFIG_CMD_MEMINFO
-#define CONFIG_CMD_MEMTEST
 #define CONFIG_SYS_MEMTEST_START	0x80000000
 #define CONFIG_SYS_MEMTEST_END		0x9fffffff
 

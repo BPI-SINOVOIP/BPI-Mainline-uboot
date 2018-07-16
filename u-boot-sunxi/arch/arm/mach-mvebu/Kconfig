@@ -6,7 +6,7 @@ config HAVE_MVEBU_EFUSE
 
 config ARMADA_32BIT
 	bool
-	select CPU_V7
+	select CPU_V7A
 	select SUPPORT_SPL
 	select SPL_DM
 	select SPL_DM_SEQ_ALIAS
@@ -75,6 +75,10 @@ config TARGET_CLEARFOG
 	bool "Support ClearFog"
 	select 88F6820
 
+config TARGET_HELIOS4
+	bool "Support Helios4"
+	select 88F6820
+
 config TARGET_MVEBU_ARMADA_37XX
 	bool "Support Armada 37xx platforms"
 	select ARMADA_3700
@@ -95,6 +99,10 @@ config TARGET_DB_88F6820_AMC
 config TARGET_TURRIS_OMNIA
 	bool "Support Turris Omnia"
 	select 88F6820
+
+config TARGET_TURRIS_MOX
+	bool "Support Turris Mox"
+	select ARMADA_3700
 
 config TARGET_MVEBU_ARMADA_8K
 	bool "Support Armada 7k/8k platforms"
@@ -128,11 +136,13 @@ endchoice
 
 config SYS_BOARD
 	default "clearfog" if TARGET_CLEARFOG
+	default "helios4" if TARGET_HELIOS4
 	default "mvebu_armada-37xx" if TARGET_MVEBU_ARMADA_37XX
 	default "db-88f6720" if TARGET_DB_88F6720
 	default "db-88f6820-gp" if TARGET_DB_88F6820_GP
 	default "db-88f6820-amc" if TARGET_DB_88F6820_AMC
 	default "turris_omnia" if TARGET_TURRIS_OMNIA
+	default "turris_mox" if TARGET_TURRIS_MOX
 	default "mvebu_armada-8k" if TARGET_MVEBU_ARMADA_8K
 	default "db-mv784mp-gp" if TARGET_DB_MV784MP_GP
 	default "ds414" if TARGET_DS414
@@ -141,6 +151,7 @@ config SYS_BOARD
 
 config SYS_CONFIG_NAME
 	default "clearfog" if TARGET_CLEARFOG
+	default "helios4" if TARGET_HELIOS4
 	default "mvebu_armada-37xx" if TARGET_MVEBU_ARMADA_37XX
 	default "db-88f6720" if TARGET_DB_88F6720
 	default "db-88f6820-gp" if TARGET_DB_88F6820_GP
@@ -151,6 +162,7 @@ config SYS_CONFIG_NAME
 	default "maxbcm" if TARGET_MAXBCM
 	default "theadorable" if TARGET_THEADORABLE
 	default "turris_omnia" if TARGET_TURRIS_OMNIA
+	default "turris_mox" if TARGET_TURRIS_MOX
 
 config SYS_VENDOR
 	default "Marvell" if TARGET_DB_MV784MP_GP
@@ -160,8 +172,10 @@ config SYS_VENDOR
 	default "Marvell" if TARGET_DB_88F6820_AMC
 	default "Marvell" if TARGET_MVEBU_ARMADA_8K
 	default "solidrun" if TARGET_CLEARFOG
+	default "kobol" if TARGET_HELIOS4
 	default "Synology" if TARGET_DS414
 	default "CZ.NIC" if TARGET_TURRIS_OMNIA
+	default "CZ.NIC" if TARGET_TURRIS_MOX
 
 config SYS_SOC
 	default "mvebu"

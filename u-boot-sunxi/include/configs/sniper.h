@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * LG Optimus Black codename sniper config
  *
  * Copyright (C) 2015 Paul Kocialkowski <contact@paulk.fr>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -47,7 +46,6 @@
  * Memory
  */
 
-#define CONFIG_SYS_TEXT_BASE		0x80100000
 #define CONFIG_SYS_SDRAM_BASE		0x80000000
 #define CONFIG_SYS_INIT_SP_ADDR		(NON_SECURE_SRAM_END - \
 					 GENERATED_GBL_DATA_SIZE)
@@ -59,8 +57,6 @@
  */
 
 #define CONFIG_SYS_I2C
-#define CONFIG_SYS_OMAP24_I2C_SPEED	400000
-#define CONFIG_SYS_OMAP24_I2C_SLAVE	1
 #define CONFIG_I2C_MULTI_BUS
 
 /*
@@ -73,8 +69,6 @@
  * SPL
  */
 
-#define CONFIG_SPL_FRAMEWORK
-
 #define CONFIG_SPL_TEXT_BASE		0x40200000
 #define CONFIG_SPL_MAX_SIZE		(SRAM_SCRATCH_SPACE_ADDR - \
 					 CONFIG_SPL_TEXT_BASE)
@@ -86,10 +80,6 @@
 
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION		1
 #define CONFIG_SPL_FS_LOAD_PAYLOAD_NAME			"u-boot.img"
-
-#define CONFIG_AUTO_COMPLETE
-
-#define CONFIG_SYS_LONGHELP
 
 #define CONFIG_SYS_CBSIZE	512
 
@@ -104,18 +94,9 @@
 
 #define CONFIG_SYS_NS16550_CLK		V_NS16550_CLK
 #define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
-#define CONFIG_CONS_INDEX		3
 
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 4800, 9600, 19200, 38400, 57600, \
 					  115200 }
-
-/*
- * USB gadget
- */
-
-#define CONFIG_USB_MUSB_PIO_ONLY
-#define CONFIG_USB_MUSB_OMAP2PLUS
-#define CONFIG_TWL4030_USB
 
 /*
  * Environment
@@ -174,6 +155,5 @@
  */
 
 #include <config_defaults.h>
-#include <config_distro_defaults.h>
 
 #endif

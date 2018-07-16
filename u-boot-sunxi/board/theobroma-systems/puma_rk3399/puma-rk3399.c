@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2017 Theobroma Systems Design und Consulting GmbH
- *
- * SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
 #include <dm.h>
+#include <environment.h>
 #include <misc.h>
 #include <spl.h>
 #include <syscon.h>
@@ -22,8 +22,6 @@
 #include <asm/arch/periph.h>
 #include <power/regulator.h>
 #include <u-boot/sha256.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
 {

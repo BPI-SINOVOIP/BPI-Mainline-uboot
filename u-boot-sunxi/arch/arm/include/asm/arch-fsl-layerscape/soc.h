@@ -1,8 +1,7 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright 2017 NXP
  * Copyright 2015 Freescale Semiconductor
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _ASM_ARMV8_FSL_LAYERSCAPE_SOC_H_
@@ -88,6 +87,8 @@ struct cpu_type {
 
 /* ahci port register default value */
 #define AHCI_PORT_PHY_1_CFG    0xa003fffe
+#define AHCI_PORT_PHY2_CFG	0x28184d1f
+#define AHCI_PORT_PHY3_CFG	0x0e081509
 #define AHCI_PORT_TRANS_CFG    0x08000029
 #define AHCI_PORT_AXICC_CFG	0x3fffffff
 
@@ -119,11 +120,15 @@ struct ccsr_ahci {
 
 #ifdef CONFIG_FSL_LSCH3
 void fsl_lsch3_early_init_f(void);
+int get_core_volt_from_fuse(void);
 #elif defined(CONFIG_FSL_LSCH2)
 void fsl_lsch2_early_init_f(void);
 int setup_chip_volt(void);
 /* Setup core vdd in unit mV */
 int board_setup_core_volt(u32 vdd);
+#ifdef CONFIG_FSL_PFE
+void init_pfe_scfg_dcfg_regs(void);
+#endif
 #endif
 
 void cpu_name(char *name);

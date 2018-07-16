@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2002 ELTEC Elektronik AG
  * Frank Gottschling <fgottschling@eltec.de>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -768,7 +767,7 @@ static void parse_putc(const char c)
 		break;
 
 	case '\n':		/* next line */
-		if (console_col || (!console_col && nl))
+		if (console_col || nl)
 			console_newline(1);
 		nl = 1;
 		break;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2000-2013
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -6,8 +7,6 @@
  * Andreas Heppel <aheppel@sysgo.de>
  *
  * Copyright 2011 Freescale Semiconductor, Inc.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -341,6 +340,36 @@ ulong env_get_hex(const char *varname, ulong default_val)
 	return value;
 }
 
+void eth_parse_enetaddr(const char *addr, uint8_t *enetaddr)
+{
+	char *end;
+	int i;
+
+	for (i = 0; i < 6; ++i) {
+		enetaddr[i] = addr ? simple_strtoul(addr, &end, 16) : 0;
+		if (addr)
+			addr = (*end) ? end + 1 : end;
+	}
+}
+
+int eth_env_get_enetaddr(const char *name, uint8_t *enetaddr)
+{
+	eth_parse_enetaddr(env_get(name), enetaddr);
+	return is_valid_ethaddr(enetaddr);
+}
+
+int eth_env_set_enetaddr(const char *name, const uint8_t *enetaddr)
+{
+	char buf[ARP_HLEN_ASCII + 1];
+
+	if (eth_env_get_enetaddr(name, (uint8_t *)buf))
+		return -EEXIST;
+
+	sprintf(buf, "%pM", enetaddr);
+
+	return env_set(name, buf);
+}
+
 #ifndef CONFIG_SPL_BUILD
 static int do_env_set(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -650,12 +679,14 @@ char *env_get(const char *name)
  */
 int env_get_f(const char *name, char *buf, unsigned len)
 {
-	int i, nxt;
+	int i, nxt, c;
 
 	for (i = 0; env_get_char(i) != '\0'; i = nxt + 1) {
 		int val, n;
 
-		for (nxt = i; env_get_char(nxt) != '\0'; ++nxt) {
+		for (nxt = i; (c = env_get_char(nxt)) != '\0'; ++nxt) {
+			if (c < 0)
+				return c;
 			if (nxt >= CONFIG_ENV_SIZE)
 				return -1;
 		}
@@ -666,7 +697,10 @@ int env_get_f(const char *name, char *buf, unsigned len)
 
 		/* found; copy out */
 		for (n = 0; n < len; ++n, ++buf) {
-			*buf = env_get_char(val++);
+			c = env_get_char(val++);
+			if (c < 0)
+				return c;
+			*buf = c;
 			if (*buf == '\0')
 				return n;
 		}
@@ -686,7 +720,7 @@ int env_get_f(const char *name, char *buf, unsigned len)
 /**
  * Decode the integer value of an environment variable and return it.
  *
- * @param name		Name of environemnt variable
+ * @param name		Name of environment variable
  * @param base		Number base to use (normally 10, or 16 for hex)
  * @param default_val	Default value to return if the variable is not
  *			found
@@ -708,10 +742,6 @@ ulong env_get_ulong(const char *name, int base, ulong default_val)
 static int do_env_save(cmd_tbl_t *cmdtp, int flag, int argc,
 		       char * const argv[])
 {
-	struct env_driver *env = env_driver_lookup_default();
-
-	printf("Saving Environment to %s...\n", env->name);
-
 	return env_save() ? 1 : 0;
 }
 

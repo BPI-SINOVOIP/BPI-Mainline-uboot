@@ -55,7 +55,6 @@
 
 #ifdef CONFIG_TRAILBLAZER
 
-#define CONFIG_SYS_TEXT_BASE		0xf8fc0000
 #define CONFIG_RESET_VECTOR_ADDRESS	0xf8fffffc
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)
 
@@ -73,7 +72,6 @@
 
 #else /* CONFIG_TRAILBLAZER */
 
-#define CONFIG_SYS_TEXT_BASE		0x11000000
 #define CONFIG_RESET_VECTOR_ADDRESS	0x1107fffc
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
 
@@ -157,7 +155,6 @@
 /*
  * Serial Port
  */
-#define CONFIG_CONS_INDEX		2
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_bus_freq(0)
@@ -201,7 +198,6 @@
 /*
  * MMC
  */
-#define CONFIG_FSL_ESDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	CONFIG_SYS_MPC85xx_ESDHC_ADDR
 
 #ifndef CONFIG_TRAILBLAZER
@@ -258,7 +254,6 @@
 /*
  * Ethernet
  */
-#define CONFIG_TSEC_ENET
 
 #define CONFIG_TSECV2
 
@@ -313,11 +308,6 @@
 /*
  * Command line configuration.
  */
-#ifndef CONFIG_TRAILBLAZER
-#define CONFIG_SYS_LONGHELP
-#define CONFIG_CMDLINE_EDITING			/* Command-line editing */
-#define CONFIG_AUTO_COMPLETE			/* add autocompletion support */
-#endif /* CONFIG_TRAILBLAZER */
 
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
 
@@ -325,15 +315,7 @@
 /*
  * Board initialisation callbacks
  */
-#define CONFIG_BOARD_EARLY_INIT_R
 #define CONFIG_MISC_INIT_R
-#define CONFIG_LAST_STAGE_INIT
-
-#else /* CONFIG_TRAILBLAZER */
-
-#define CONFIG_BOARD_EARLY_INIT_R
-#define CONFIG_LAST_STAGE_INIT
-
 #endif /* CONFIG_TRAILBLAZER */
 
 /*
@@ -361,7 +343,7 @@
 
 #else
 
-#define CONFIG_HOSTNAME		controlcenterd
+#define CONFIG_HOSTNAME		"controlcenterd"
 #define CONFIG_ROOTPATH		"/opt/nfsroot"
 #define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP */

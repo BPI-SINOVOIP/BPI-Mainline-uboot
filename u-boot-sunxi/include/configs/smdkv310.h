@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2011 Samsung Electronics
  *
  * Configuration settings for the SAMSUNG SMDKV310 (EXYNOS4210) board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -17,13 +16,11 @@
 
 /* High Level Configuration Options */
 #define CONFIG_EXYNOS4210		1	/* which is a EXYNOS4210 SoC */
-#define CONFIG_SMDKV310			1	/* working with SMDKV310*/
 
 /* Mach Type */
 #define CONFIG_MACH_TYPE		MACH_TYPE_SMDKV310
 
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
-#define CONFIG_SYS_TEXT_BASE		0x43E00000
 
 /* Handling Sleep Mode*/
 #define S5P_CHECK_SLEEP			0x00000BAD

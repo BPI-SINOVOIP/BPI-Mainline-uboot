@@ -1,7 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2013 Altera Corporation <www.altera.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -11,7 +10,7 @@
 #include <dwmmc.h>
 #include <errno.h>
 #include <fdtdec.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <linux/err.h>
 #include <malloc.h>
 
@@ -124,7 +123,7 @@ static int socfpga_dwmmc_probe(struct udevice *dev)
 	upriv->mmc = host->mmc;
 	host->mmc->dev = dev;
 
-	return 0;
+	return dwmci_probe(dev);
 }
 
 static int socfpga_dwmmc_bind(struct udevice *dev)

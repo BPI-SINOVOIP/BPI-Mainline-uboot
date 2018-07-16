@@ -1,9 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2009-2012
  * Wojciech Dubowik <wojciech.dubowik@neratec.com>
  * Luka Perkov <luka@openwrt.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _CONFIG_ICONNECT_H
@@ -29,7 +28,8 @@
 /*
  * Commands configuration
  */
-#define CONFIG_SYS_MVFS
+#define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
+#define CONFIG_MTD_PARTITIONS
 
 /*
  * mv-common.h should be defined after CMD configs since it used them

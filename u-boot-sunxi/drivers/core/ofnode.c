@@ -1,15 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2017 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <dm.h>
 #include <fdtdec.h>
 #include <fdt_support.h>
-#include <libfdt.h>
+#include <linux/libfdt.h>
 #include <dm/of_access.h>
 #include <dm/of_addr.h>
 #include <dm/ofnode.h>
@@ -165,6 +164,20 @@ ofnode ofnode_next_subnode(ofnode node)
 		fdt_next_subnode(gd->fdt_blob, ofnode_to_offset(node)));
 }
 
+ofnode ofnode_get_parent(ofnode node)
+{
+	ofnode parent;
+
+	assert(ofnode_valid(node));
+	if (ofnode_is_np(node))
+		parent = np_to_ofnode(of_get_parent(ofnode_to_np(node)));
+	else
+		parent.of_offset = fdt_parent_offset(gd->fdt_blob,
+						     ofnode_to_offset(node));
+
+	return parent;
+}
+
 const char *ofnode_get_name(ofnode node)
 {
 	assert(ofnode_valid(node));
@@ -172,6 +185,19 @@ const char *ofnode_get_name(ofnode node)
 		return strrchr(node.np->full_name, '/') + 1;
 
 	return fdt_get_name(gd->fdt_blob, ofnode_to_offset(node), NULL);
+}
+
+ofnode ofnode_get_by_phandle(uint phandle)
+{
+	ofnode node;
+
+	if (of_live_active())
+		node = np_to_ofnode(of_find_node_by_phandle(phandle));
+	else
+		node.of_offset = fdt_node_offset_by_phandle(gd->fdt_blob,
+							    phandle);
+
+	return node;
 }
 
 int ofnode_read_size(ofnode node, const char *propname)
@@ -200,13 +226,21 @@ fdt_addr_t ofnode_get_addr_index(ofnode node, int index)
 		uint flags;
 		u64 size;
 		int na;
+		int ns;
 
 		prop_val = of_get_address(ofnode_to_np(node), index, &size,
 					  &flags);
 		if (!prop_val)
 			return FDT_ADDR_T_NONE;
-		na = of_n_addr_cells(ofnode_to_np(node));
-		return of_read_number(prop_val, na);
+
+		ns = of_n_size_cells(ofnode_to_np(node));
+
+		if (IS_ENABLED(CONFIG_OF_TRANSLATE) && ns > 0) {
+			return of_translate_address(ofnode_to_np(node), prop_val);
+		} else {
+			na = of_n_addr_cells(ofnode_to_np(node));
+			return of_read_number(prop_val, na);
+		}
 	} else {
 		return fdt_get_base_address(gd->fdt_blob,
 					    ofnode_to_offset(node));
@@ -296,7 +330,8 @@ int ofnode_parse_phandle_with_args(ofnode node, const char *list_name,
 		int ret;
 
 		ret = of_parse_phandle_with_args(ofnode_to_np(node),
-				list_name, cells_name, index, &args);
+						 list_name, cells_name, index,
+						 &args);
 		if (ret)
 			return ret;
 		ofnode_from_of_phandle_args(&args, out_args);
@@ -305,8 +340,9 @@ int ofnode_parse_phandle_with_args(ofnode node, const char *list_name,
 		int ret;
 
 		ret = fdtdec_parse_phandle_with_args(gd->fdt_blob,
-				ofnode_to_offset(node), list_name, cells_name,
-				cell_count, index, &args);
+						     ofnode_to_offset(node),
+						     list_name, cells_name,
+						     cell_count, index, &args);
 		if (ret)
 			return ret;
 		ofnode_from_fdtdec_phandle_args(&args, out_args);
@@ -534,10 +570,10 @@ int ofnode_read_pci_addr(ofnode node, enum fdt_pci_space type,
 				addr->phys_mid = fdt32_to_cpu(cell[1]);
 				addr->phys_lo = fdt32_to_cpu(cell[1]);
 				break;
-			} else {
-				cell += (FDT_PCI_ADDR_CELLS +
-					 FDT_PCI_SIZE_CELLS);
 			}
+
+			cell += (FDT_PCI_ADDR_CELLS +
+				 FDT_PCI_SIZE_CELLS);
 		}
 
 		if (i == num) {
@@ -546,9 +582,9 @@ int ofnode_read_pci_addr(ofnode node, enum fdt_pci_space type,
 		}
 
 		return 0;
-	} else {
-		ret = -EINVAL;
 	}
+
+	ret = -EINVAL;
 
 fail:
 	debug("(not found)\n");
@@ -641,4 +677,23 @@ int ofnode_read_resource_byname(ofnode node, const char *name,
 		return index;
 
 	return ofnode_read_resource(node, index, res);
+}
+
+u64 ofnode_translate_address(ofnode node, const fdt32_t *in_addr)
+{
+	if (ofnode_is_np(node))
+		return of_translate_address(ofnode_to_np(node), in_addr);
+	else
+		return fdt_translate_address(gd->fdt_blob, ofnode_to_offset(node), in_addr);
+}
+
+int ofnode_device_is_compatible(ofnode node, const char *compat)
+{
+	if (ofnode_is_np(node))
+		return of_device_is_compatible(ofnode_to_np(node), compat,
+					       NULL, NULL);
+	else
+		return !fdt_node_check_compatible(gd->fdt_blob,
+						  ofnode_to_offset(node),
+						  compat);
 }

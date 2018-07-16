@@ -1,11 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2009 Samsung Electronics
  * Minkyu Kang <mk7.kang@samsung.com>
  * Kyungmin Park <kyungmin.park@samsung.com>
  *
  * Configuation settings for the SAMSUNG Universal (s5pc100) board.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __CONFIG_H
@@ -15,7 +14,6 @@
 #define CONFIG_SAMSUNG		1	/* in a SAMSUNG core */
 #define CONFIG_S5P		1	/* which is in a S5P Family */
 #define CONFIG_S5PC110		1	/* which is in a S5PC110 */
-#define CONFIG_MACH_GONI	1	/* working with Goni */
 
 #include <linux/sizes.h>
 #include <asm/arch/cpu.h>		/* get chip and board defs */
@@ -29,13 +27,11 @@
 #define CONFIG_SYS_SDRAM_BASE		0x30000000
 
 /* Text Base */
-#define CONFIG_SYS_TEXT_BASE		0x34800000
 
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_REVISION_TAG
 #define CONFIG_INITRD_TAG
-#define CONFIG_CMDLINE_EDITING
 
 /* Size of malloc() pool before and after relocation */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (80 << 20))
@@ -54,9 +50,6 @@
 /* USB Composite download gadget - g_dnl */
 #define CONFIG_SYS_DFU_DATA_BUF_SIZE SZ_32M
 #define DFU_DEFAULT_POLL_TIMEOUT 300
-
-/* TIZEN THOR downloader support */
-#define CONFIG_USB_FUNCTION_THOR
 
 /* USB Samsung's IDs */
 
@@ -109,8 +102,6 @@
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_ENV_VARS_UBOOT_CONFIG
-#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	CONFIG_UPDATEB \
 	"updatek=" \
@@ -158,7 +149,6 @@
 	"opts=always_resume=1\0" \
 	"dfu_alt_info=" CONFIG_DFU_ALT "\0"
 
-#define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_PBSIZE	384	/* Print Buffer Size */
 /* memtest works on */
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
@@ -188,14 +178,8 @@
 #define CONFIG_SAMSUNG_ONENAND		1
 #define CONFIG_SYS_ONENAND_BASE		0xB0000000
 
-/* write support for filesystems */
-#define CONFIG_EXT4_WRITE
-
-/* GPT */
-
 #define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_LOAD_ADDR - 0x1000000)
 
 #define CONFIG_USB_GADGET_DWC2_OTG_PHY
-#define CONFIG_USB_FUNCTION_MASS_STORAGE
 
 #endif	/* __CONFIG_H */

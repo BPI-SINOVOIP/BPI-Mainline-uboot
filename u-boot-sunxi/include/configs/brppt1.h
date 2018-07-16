@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * brtpp1.h
  *
@@ -5,8 +6,6 @@
  *
  * Copyright (C) 2013 Hannes Schmelzer <oe5hpm@oevsv.at> -
  * Bernecker & Rainer Industrieelektronik GmbH - http://www.br-automation.com
- *
- * SPDX-License-Identifier:        GPL-2.0+
  */
 
 #ifndef __CONFIG_BRPPT1_H__
@@ -19,11 +18,6 @@
 #define CONFIG_LCD_ROTATION
 #define CONFIG_LCD_DT_SIMPLEFB
 #define LCD_BPP				LCD_COLOR32
-
-/* Bootcount using the RTC block */
-#define CONFIG_SYS_BOOTCOUNT_ADDR	0x44E3E000
-#define CONFIG_BOOTCOUNT_LIMIT
-#define CONFIG_BOOTCOUNT_AM33XX
 
 /* memory */
 #define CONFIG_SYS_MALLOC_LEN		(5 * 1024 * 1024)
@@ -210,8 +204,6 @@ MMCARGS
 #endif /* CONFIG_NAND */
 
 /* USB configuration */
-#define CONFIG_USB_MUSB_DSPS
-#define CONFIG_USB_MUSB_PIO_ONLY
 #define CONFIG_USB_MUSB_DISABLE_BULK_COMBINE_SPLIT
 #define CONFIG_AM335X_USB0
 #define CONFIG_AM335X_USB0_MODE	MUSB_HOST
@@ -220,10 +212,8 @@ MMCARGS
 
 #if defined(CONFIG_SPI_BOOT)
 /* McSPI IP block */
-#define CONFIG_SPI
 #define CONFIG_SF_DEFAULT_SPEED		24000000
 
-#define CONFIG_SPL_SPI_LOAD
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
@@ -245,13 +235,5 @@ MMCARGS
 #else
 #error "no storage for Environment defined!"
 #endif
-/*
- * Common filesystems support.  When we have removable storage we
- * enabled a number of useful commands and support.
- */
-#if defined(CONFIG_MMC) || defined(CONFIG_USB_STORAGE)
-#define CONFIG_FS_EXT4
-#define CONFIG_EXT4_WRITE
-#endif /* CONFIG_MMC, ... */
 
 #endif	/* ! __CONFIG_BRPPT1_H__ */

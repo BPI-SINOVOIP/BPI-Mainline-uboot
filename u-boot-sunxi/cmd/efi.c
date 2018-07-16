@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * (C) Copyright 2015 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -84,7 +83,7 @@ void *efi_build_mem_table(struct efi_entry_memmap *map, int size, bool skip_bs)
 	prev = NULL;
 	addr = 0;
 	dest = base;
-	end = base + count;
+	end = (struct efi_mem_desc *)((ulong)base + count * map->desc_size);
 	for (desc = base; desc < end; desc = efi_get_next_mem_desc(map, desc)) {
 		bool merge = true;
 		int type = desc->type;

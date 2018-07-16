@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2013 Google, Inc
  *
  * (C) Copyright 2012
  * Pavel Herrmann <morpheus.ibis@gmail.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -156,6 +155,20 @@ const char *uclass_get_name(enum uclass_id id)
 	if (uclass_get(id, &uc))
 		return NULL;
 	return uc->uc_drv->name;
+}
+
+enum uclass_id uclass_get_by_name(const char *name)
+{
+	int i;
+
+	for (i = 0; i < UCLASS_COUNT; i++) {
+		struct uclass_driver *uc_drv = lists_uclass_lookup(i);
+
+		if (uc_drv && !strcmp(uc_drv->name, name))
+			return i;
+	}
+
+	return UCLASS_INVALID;
 }
 
 int uclass_find_device(enum uclass_id id, int index, struct udevice **devp)
@@ -443,6 +456,32 @@ int uclass_get_device_by_ofnode(enum uclass_id id, ofnode node,
 }
 
 #if CONFIG_IS_ENABLED(OF_CONTROL)
+int uclass_get_device_by_phandle_id(enum uclass_id id, uint phandle_id,
+				    struct udevice **devp)
+{
+	struct udevice *dev;
+	struct uclass *uc;
+	int ret;
+
+	*devp = NULL;
+	ret = uclass_get(id, &uc);
+	if (ret)
+		return ret;
+
+	list_for_each_entry(dev, &uc->dev_head, uclass_node) {
+		uint phandle;
+
+		phandle = dev_read_phandle(dev);
+
+		if (phandle == phandle_id) {
+			*devp = dev;
+			return uclass_get_device_tail(dev, ret, devp);
+		}
+	}
+
+	return -ENODEV;
+}
+
 int uclass_get_device_by_phandle(enum uclass_id id, struct udevice *parent,
 				 const char *name, struct udevice **devp)
 {

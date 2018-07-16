@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  *  EFI application console interface
  *
  *  Copyright (c) 2016 Alexander Graf
- *
- *  SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
@@ -12,8 +11,6 @@
 #include <efi_loader.h>
 #include <stdio_dev.h>
 #include <video_console.h>
-
-static bool console_size_queried;
 
 #define EFI_COUT_MODE_2 2
 #define EFI_MAX_COUT_MODE 3
@@ -45,7 +42,6 @@ static struct cout_mode efi_cout_modes[] = {
 	},
 };
 
-const efi_guid_t efi_guid_console_control = CONSOLE_CONTROL_GUID;
 const efi_guid_t efi_guid_text_output_protocol =
 			EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL_GUID;
 const efi_guid_t efi_guid_text_input_protocol =
@@ -53,43 +49,6 @@ const efi_guid_t efi_guid_text_input_protocol =
 
 #define cESC '\x1b'
 #define ESC "\x1b"
-
-static efi_status_t EFIAPI efi_cin_get_mode(
-			struct efi_console_control_protocol *this,
-			int *mode, char *uga_exists, char *std_in_locked)
-{
-	EFI_ENTRY("%p, %p, %p, %p", this, mode, uga_exists, std_in_locked);
-
-	if (mode)
-		*mode = EFI_CONSOLE_MODE_TEXT;
-	if (uga_exists)
-		*uga_exists = 0;
-	if (std_in_locked)
-		*std_in_locked = 0;
-
-	return EFI_EXIT(EFI_SUCCESS);
-}
-
-static efi_status_t EFIAPI efi_cin_set_mode(
-			struct efi_console_control_protocol *this, int mode)
-{
-	EFI_ENTRY("%p, %d", this, mode);
-	return EFI_EXIT(EFI_UNSUPPORTED);
-}
-
-static efi_status_t EFIAPI efi_cin_lock_std_in(
-			struct efi_console_control_protocol *this,
-			uint16_t *password)
-{
-	EFI_ENTRY("%p, %p", this, password);
-	return EFI_EXIT(EFI_UNSUPPORTED);
-}
-
-struct efi_console_control_protocol efi_console_control = {
-	.get_mode = efi_cin_get_mode,
-	.set_mode = efi_cin_set_mode,
-	.lock_std_in = efi_cin_lock_std_in,
-};
 
 /* Default to mode 0 */
 static struct simple_text_output_mode efi_con_mode = {
@@ -101,7 +60,15 @@ static struct simple_text_output_mode efi_con_mode = {
 	.cursor_visible = 1,
 };
 
-static int term_read_reply(int *n, int maxnum, char end_char)
+/*
+ * Receive and parse a reply from the terminal.
+ *
+ * @n:		array of return values
+ * @num:	number of return values expected
+ * @end_char:	character indicating end of terminal message
+ * @return:	non-zero indicates error
+ */
+static int term_read_reply(int *n, int num, char end_char)
 {
 	char c;
 	int i = 0;
@@ -118,7 +85,7 @@ static int term_read_reply(int *n, int maxnum, char end_char)
 		c = getc();
 		if (c == ';') {
 			i++;
-			if (i >= maxnum)
+			if (i >= num)
 				return -1;
 			n[i] = 0;
 			continue;
@@ -132,6 +99,8 @@ static int term_read_reply(int *n, int maxnum, char end_char)
 		n[i] *= 10;
 		n[i] += c - '0';
 	}
+	if (i != num - 1)
+		return -1;
 
 	return 0;
 }
@@ -155,25 +124,36 @@ static efi_status_t EFIAPI efi_cout_output_string(
 
 	unsigned int n16 = utf16_strlen(string);
 	char buf[MAX_UTF8_PER_UTF16 * n16 + 1];
-	char *p;
+	u16 *p;
 
 	*utf16_to_utf8((u8 *)buf, string, n16) = '\0';
 
 	fputs(stdout, buf);
 
-	for (p = buf; *p; p++) {
+	/*
+	 * Update the cursor position.
+	 *
+	 * The UEFI spec provides advance rules for U+0000, U+0008, U+000A,
+	 * and U000D. All other characters, including control characters
+	 * U+0007 (bel) and U+0009 (tab), have to increase the column by one.
+	 */
+	for (p = string; *p; ++p) {
 		switch (*p) {
-		case '\r':   /* carriage-return */
-			con->cursor_column = 0;
+		case '\b':	/* U+0008, backspace */
+			con->cursor_column = max(0, con->cursor_column - 1);
 			break;
-		case '\n':   /* newline */
+		case '\n':	/* U+000A, newline */
 			con->cursor_column = 0;
 			con->cursor_row++;
 			break;
-		case '\t':   /* tab, assume 8 char align */
+		case '\r':	/* U+000D, carriage-return */
+			con->cursor_column = 0;
 			break;
-		case '\b':   /* backspace */
-			con->cursor_column = max(0, con->cursor_column - 1);
+		case 0xd800 ... 0xdbff:
+			/*
+			 * Ignore high surrogates, we do not want to count a
+			 * Unicode character twice.
+			 */
 			break;
 		default:
 			con->cursor_column++;
@@ -233,6 +213,51 @@ static int query_console_serial(int *rows, int *cols)
 	return 0;
 }
 
+/*
+ * Update the mode table.
+ *
+ * By default the only mode available is 80x25. If the console has at least 50
+ * lines, enable mode 80x50. If we can query the console size and it is neither
+ * 80x25 nor 80x50, set it as an additional mode.
+ */
+static void query_console_size(void)
+{
+	const char *stdout_name = env_get("stdout");
+	int rows = 25, cols = 80;
+
+	if (stdout_name && !strcmp(stdout_name, "vidconsole") &&
+	    IS_ENABLED(CONFIG_DM_VIDEO)) {
+		struct stdio_dev *stdout_dev =
+			stdio_get_by_name("vidconsole");
+		struct udevice *dev = stdout_dev->priv;
+		struct vidconsole_priv *priv =
+			dev_get_uclass_priv(dev);
+		rows = priv->rows;
+		cols = priv->cols;
+	} else if (query_console_serial(&rows, &cols)) {
+		return;
+	}
+
+	/* Test if we can have Mode 1 */
+	if (cols >= 80 && rows >= 50) {
+		efi_cout_modes[1].present = 1;
+		efi_con_mode.max_mode = 2;
+	}
+
+	/*
+	 * Install our mode as mode 2 if it is different
+	 * than mode 0 or 1 and set it as the currently selected mode
+	 */
+	if (!cout_mode_matches(&efi_cout_modes[0], rows, cols) &&
+	    !cout_mode_matches(&efi_cout_modes[1], rows, cols)) {
+		efi_cout_modes[EFI_COUT_MODE_2].columns = cols;
+		efi_cout_modes[EFI_COUT_MODE_2].rows = rows;
+		efi_cout_modes[EFI_COUT_MODE_2].present = 1;
+		efi_con_mode.max_mode = EFI_MAX_COUT_MODE;
+		efi_con_mode.mode = EFI_COUT_MODE_2;
+	}
+}
+
 static efi_status_t EFIAPI efi_cout_query_mode(
 			struct efi_simple_text_output_protocol *this,
 			unsigned long mode_number, unsigned long *columns,
@@ -240,52 +265,12 @@ static efi_status_t EFIAPI efi_cout_query_mode(
 {
 	EFI_ENTRY("%p, %ld, %p, %p", this, mode_number, columns, rows);
 
-	if (!console_size_queried) {
-		const char *stdout_name = env_get("stdout");
-		int rows, cols;
-
-		console_size_queried = true;
-
-		if (stdout_name && !strcmp(stdout_name, "vidconsole") &&
-		    IS_ENABLED(CONFIG_DM_VIDEO)) {
-			struct stdio_dev *stdout_dev =
-				stdio_get_by_name("vidconsole");
-			struct udevice *dev = stdout_dev->priv;
-			struct vidconsole_priv *priv =
-				dev_get_uclass_priv(dev);
-			rows = priv->rows;
-			cols = priv->cols;
-		} else if (query_console_serial(&rows, &cols)) {
-			goto out;
-		}
-
-		/* Test if we can have Mode 1 */
-		if (cols >= 80 && rows >= 50) {
-			efi_cout_modes[1].present = 1;
-			efi_con_mode.max_mode = 2;
-		}
-
-		/*
-		 * Install our mode as mode 2 if it is different
-		 * than mode 0 or 1 and set it  as the currently selected mode
-		 */
-		if (!cout_mode_matches(&efi_cout_modes[0], rows, cols) &&
-		    !cout_mode_matches(&efi_cout_modes[1], rows, cols)) {
-			efi_cout_modes[EFI_COUT_MODE_2].columns = cols;
-			efi_cout_modes[EFI_COUT_MODE_2].rows = rows;
-			efi_cout_modes[EFI_COUT_MODE_2].present = 1;
-			efi_con_mode.max_mode = EFI_MAX_COUT_MODE;
-			efi_con_mode.mode = EFI_COUT_MODE_2;
-		}
-	}
-
 	if (mode_number >= efi_con_mode.max_mode)
 		return EFI_EXIT(EFI_UNSUPPORTED);
 
 	if (efi_cout_modes[mode_number].present != 1)
 		return EFI_EXIT(EFI_UNSUPPORTED);
 
-out:
 	if (columns)
 		*columns = efi_cout_modes[mode_number].columns;
 	if (rows)
@@ -399,6 +384,48 @@ static efi_status_t EFIAPI efi_cin_reset(
 	return EFI_EXIT(EFI_UNSUPPORTED);
 }
 
+/*
+ * Analyze modifiers (shift, alt, ctrl) for function keys.
+ * This gets called when we have already parsed CSI.
+ *
+ * @modifiers:  bitmask (shift, alt, ctrl)
+ * @return:	the unmodified code
+ */
+static char skip_modifiers(int *modifiers)
+{
+	char c, mod = 0, ret = 0;
+
+	c = getc();
+
+	if (c != ';') {
+		ret = c;
+		if (c == '~')
+			goto out;
+		c = getc();
+	}
+	for (;;) {
+		switch (c) {
+		case '0'...'9':
+			mod *= 10;
+			mod += c - '0';
+		/* fall through */
+		case ';':
+			c = getc();
+			break;
+		default:
+			goto out;
+		}
+	}
+out:
+	if (mod)
+		--mod;
+	if (modifiers)
+		*modifiers = mod;
+	if (!ret)
+		ret = c;
+	return ret;
+}
+
 static efi_status_t EFIAPI efi_cin_read_key_stroke(
 			struct efi_simple_input_interface *this,
 			struct efi_input_key *key)
@@ -421,14 +448,21 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
 
 	ch = getc();
 	if (ch == cESC) {
-		/* Escape Sequence */
+		/*
+		 * Xterm Control Sequences
+		 * https://www.xfree86.org/4.8.0/ctlseqs.html
+		 */
 		ch = getc();
 		switch (ch) {
 		case cESC: /* ESC */
 			pressed_key.scan_code = 23;
 			break;
 		case 'O': /* F1 - F4 */
-			pressed_key.scan_code = getc() - 'P' + 11;
+			ch = getc();
+			/* skip modifiers */
+			if (ch <= '9')
+				ch = getc();
+			pressed_key.scan_code = ch - 'P' + 11;
 			break;
 		case 'a'...'z':
 			ch = ch - 'a';
@@ -445,17 +479,51 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
 			case 'H': /* Home */
 				pressed_key.scan_code = 5;
 				break;
-			case '1': /* F5 - F8 */
-				pressed_key.scan_code = getc() - '0' + 11;
-				getc();
+			case '1':
+				ch = skip_modifiers(NULL);
+				switch (ch) {
+				case '1'...'5': /* F1 - F5 */
+					pressed_key.scan_code = ch - '1' + 11;
+					break;
+				case '7'...'9': /* F6 - F8 */
+					pressed_key.scan_code = ch - '7' + 16;
+					break;
+				case 'A'...'D': /* up, down right, left */
+					pressed_key.scan_code = ch - 'A' + 1;
+					break;
+				case 'F':
+					pressed_key.scan_code = 6; /* End */
+					break;
+				case 'H':
+					pressed_key.scan_code = 5; /* Home */
+					break;
+				}
 				break;
-			case '2': /* F9 - F12 */
-				pressed_key.scan_code = getc() - '0' + 19;
-				getc();
+			case '2':
+				ch = skip_modifiers(NULL);
+				switch (ch) {
+				case '0'...'1': /* F9 - F10 */
+					pressed_key.scan_code = ch - '0' + 19;
+					break;
+				case '3'...'4': /* F11 - F12 */
+					pressed_key.scan_code = ch - '3' + 21;
+					break;
+				case '~': /* INS */
+					pressed_key.scan_code = 7;
+					break;
+				}
 				break;
 			case '3': /* DEL */
 				pressed_key.scan_code = 8;
-				getc();
+				skip_modifiers(NULL);
+				break;
+			case '5': /* PG UP */
+				pressed_key.scan_code = 9;
+				skip_modifiers(NULL);
+				break;
+			case '6': /* PG DOWN */
+				pressed_key.scan_code = 10;
+				skip_modifiers(NULL);
 				break;
 			}
 			break;
@@ -464,7 +532,8 @@ static efi_status_t EFIAPI efi_cin_read_key_stroke(
 		/* Backspace */
 		ch = 0x08;
 	}
-	pressed_key.unicode_char = ch;
+	if (!pressed_key.scan_code)
+		pressed_key.unicode_char = ch;
 	*key = pressed_key;
 
 	return EFI_EXIT(EFI_SUCCESS);
@@ -482,42 +551,45 @@ static void EFIAPI efi_key_notify(struct efi_event *event, void *context)
 {
 }
 
+/*
+ * Notification function of the console timer event.
+ *
+ * event:	console timer event
+ * context:	not used
+ */
 static void EFIAPI efi_console_timer_notify(struct efi_event *event,
 					    void *context)
 {
 	EFI_ENTRY("%p, %p", event, context);
+
+	/* Check if input is available */
 	if (tstc()) {
+		/* Queue the wait for key event */
 		efi_con_in.wait_for_key->is_signaled = true;
-		efi_signal_event(efi_con_in.wait_for_key);
-		}
+		efi_signal_event(efi_con_in.wait_for_key, true);
+	}
 	EFI_EXIT(EFI_SUCCESS);
 }
-
 
 /* This gets called from do_bootefi_exec(). */
 int efi_console_register(void)
 {
 	efi_status_t r;
-	struct efi_object *efi_console_control_obj;
 	struct efi_object *efi_console_output_obj;
 	struct efi_object *efi_console_input_obj;
 
+	/* Set up mode information */
+	query_console_size();
+
 	/* Create handles */
-	r = efi_create_handle((void **)&efi_console_control_obj);
-	if (r != EFI_SUCCESS)
-		goto out_of_memory;
-	r = efi_add_protocol(efi_console_control_obj->handle,
-			     &efi_guid_console_control, &efi_console_control);
-	if (r != EFI_SUCCESS)
-		goto out_of_memory;
-	r = efi_create_handle((void **)&efi_console_output_obj);
+	r = efi_create_handle((efi_handle_t *)&efi_console_output_obj);
 	if (r != EFI_SUCCESS)
 		goto out_of_memory;
 	r = efi_add_protocol(efi_console_output_obj->handle,
 			     &efi_guid_text_output_protocol, &efi_con_out);
 	if (r != EFI_SUCCESS)
 		goto out_of_memory;
-	r = efi_create_handle((void **)&efi_console_input_obj);
+	r = efi_create_handle((efi_handle_t *)&efi_console_input_obj);
 	if (r != EFI_SUCCESS)
 		goto out_of_memory;
 	r = efi_add_protocol(efi_console_input_obj->handle,
@@ -526,14 +598,14 @@ int efi_console_register(void)
 		goto out_of_memory;
 
 	/* Create console events */
-	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK,
-			     efi_key_notify, NULL, &efi_con_in.wait_for_key);
+	r = efi_create_event(EVT_NOTIFY_WAIT, TPL_CALLBACK, efi_key_notify,
+			     NULL, NULL, &efi_con_in.wait_for_key);
 	if (r != EFI_SUCCESS) {
 		printf("ERROR: Failed to register WaitForKey event\n");
 		return r;
 	}
 	r = efi_create_event(EVT_TIMER | EVT_NOTIFY_SIGNAL, TPL_CALLBACK,
-			     efi_console_timer_notify, NULL,
+			     efi_console_timer_notify, NULL, NULL,
 			     &console_timer_event);
 	if (r != EFI_SUCCESS) {
 		printf("ERROR: Failed to register console event\n");

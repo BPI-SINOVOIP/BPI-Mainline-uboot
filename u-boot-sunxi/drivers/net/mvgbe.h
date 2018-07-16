@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * (C) Copyright 2009
  * Marvell Semiconductor <www.marvell.com>
@@ -5,8 +6,6 @@
  *
  * based on - Driver for MV64360X ethernet ports
  * Copyright (C) 2002 rabeeh@galileo.co.il
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __MVGBE_H__
@@ -217,6 +216,7 @@
 
 /* SMI register fields */
 #define MVGBE_PHY_SMI_TIMEOUT		10000
+#define MVGBE_PHY_SMI_TIMEOUT_MS	1000
 #define MVGBE_PHY_SMI_DATA_OFFS		0	/* Data */
 #define MVGBE_PHY_SMI_DATA_MASK		(0xffff << MVGBE_PHY_SMI_DATA_OFFS)
 #define MVGBE_PHY_SMI_DEV_ADDR_OFFS	16	/* PHY device address */
@@ -292,17 +292,10 @@
 #define EBAR_TARGET_GUNIT			0x00000007
 
 /* Window attrib */
-#if defined(CONFIG_DOVE)
-#define EBAR_DRAM_CS0				0x00000000
-#define EBAR_DRAM_CS1				0x00000000
-#define EBAR_DRAM_CS2				0x00000000
-#define EBAR_DRAM_CS3				0x00000000
-#else
 #define EBAR_DRAM_CS0				0x00000E00
 #define EBAR_DRAM_CS1				0x00000D00
 #define EBAR_DRAM_CS2				0x00000B00
 #define EBAR_DRAM_CS3				0x00000700
-#endif
 
 /* DRAM Target interface */
 #define EBAR_DRAM_NO_CACHE_COHERENCY		0x00000000

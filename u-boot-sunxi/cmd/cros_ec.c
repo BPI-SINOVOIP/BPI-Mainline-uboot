@@ -1,10 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Chromium OS cros_ec driver
  *
  * Copyright (c) 2016 The Chromium OS Authors.
  * Copyright (c) 2016 National Instruments Corp
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -16,8 +15,6 @@
 
 /* Note: depends on enum ec_current_image */
 static const char * const ec_current_image_name[] = {"unknown", "RO", "RW"};
-
-DECLARE_GLOBAL_DATA_PTR;
 
 /**
  * Decode a flash region parameter

@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (c) 2015 Google, Inc
  * Written by Simon Glass <sjg@chromium.org>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -11,8 +10,6 @@
 #include <sysreset.h>
 #include <asm/state.h>
 #include <asm/test.h>
-
-DECLARE_GLOBAL_DATA_PTR;
 
 static int sandbox_warm_sysreset_request(struct udevice *dev,
 					 enum sysreset_t type)

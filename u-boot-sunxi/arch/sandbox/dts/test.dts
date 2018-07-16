@@ -27,6 +27,10 @@
 		testfdt3 = "/b-test";
 		testfdt5 = "/some-bus/c-test@5";
 		testfdt8 = "/a-test";
+		fdt-dummy0 = "/translation-test@8000/dev@0,0";
+		fdt-dummy1 = "/translation-test@8000/dev@1,100";
+		fdt-dummy2 = "/translation-test@8000/dev@2,200";
+		fdt-dummy3 = "/translation-test@8000/noxlatebus@3,300/dev@42";
 		usb0 = &usb_0;
 		usb1 = &usb_1;
 		usb2 = &usb_2;
@@ -177,7 +181,7 @@
 		gpio-controller;
 		#gpio-cells = <1>;
 		gpio-bank-name = "a";
-		num-gpios = <20>;
+		sandbox,gpio-count = <20>;
 	};
 
 	gpio_b: extra-gpios {
@@ -185,7 +189,7 @@
 		gpio-controller;
 		#gpio-cells = <5>;
 		gpio-bank-name = "b";
-		num-gpios = <10>;
+		sandbox,gpio-count = <10>;
 	};
 
 	i2c@0 {
@@ -223,6 +227,10 @@
 		sandbox_pmic: sandbox_pmic {
 			reg = <0x40>;
 		};
+
+		mc34708: pmic@41 {
+			reg = <0x41>;
+		};
 	};
 
 	adc@0 {
@@ -249,6 +257,18 @@
 		martinet {
 			gpios = <&gpio_a 2 0>;
 			label = "sandbox:green";
+		};
+
+		default_on {
+			gpios = <&gpio_a 5 0>;
+			label = "sandbox:default_on";
+			default-state = "on";
+		};
+
+		default_off {
+			gpios = <&gpio_a 6 0>;
+			label = "sandbox:default_off";
+			default-state = "off";
 		};
 	};
 
@@ -389,9 +409,21 @@
 			0x38 8>;
 	};
 
+	syscon@2 {
+		compatible = "simple-mfd", "syscon";
+		reg = <0x40 5
+			0x48 6
+			0x50 7
+			0x58 8>;
+	};
+
 	timer {
 		compatible = "sandbox,timer";
 		clock-frequency = <1000000>;
+	};
+
+	tpm2 {
+		compatible = "sandbox,tpm2";
 	};
 
 	uart0: serial {
@@ -477,6 +509,59 @@
 
 	wdt0: wdt@0 {
 		compatible = "sandbox,wdt";
+	};
+
+	chosen {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		chosen-test {
+			compatible = "denx,u-boot-fdt-test";
+			reg = <9 1>;
+		};
+	};
+
+	translation-test@8000 {
+		compatible = "simple-bus";
+		reg = <0x8000 0x4000>;
+
+		#address-cells = <0x2>;
+		#size-cells = <0x1>;
+
+		ranges = <0 0x0 0x8000 0x1000
+			  1 0x100 0x9000 0x1000
+			  2 0x200 0xA000 0x1000
+			  3 0x300 0xB000 0x1000
+			 >;
+
+		dev@0,0 {
+			compatible = "denx,u-boot-fdt-dummy";
+			reg = <0 0x0 0x1000>;
+		};
+
+		dev@1,100 {
+			compatible = "denx,u-boot-fdt-dummy";
+			reg = <1 0x100 0x1000>;
+
+		};
+
+		dev@2,200 {
+			compatible = "denx,u-boot-fdt-dummy";
+			reg = <2 0x200 0x1000>;
+		};
+
+
+		noxlatebus@3,300 {
+			compatible = "simple-bus";
+			reg = <3 0x300 0x1000>;
+
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+
+			dev@42 {
+				compatible = "denx,u-boot-fdt-dummy";
+				reg = <0x42>;
+			};
+		};
 	};
 };
 

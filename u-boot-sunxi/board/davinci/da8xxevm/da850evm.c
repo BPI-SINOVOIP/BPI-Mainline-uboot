@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
  *
@@ -5,11 +6,11 @@
  *
  * Copyright (C) 2009 Nick Thompson, GE Fanuc, Ltd. <nick.thompson@gefanuc.com>
  * Copyright (C) 2007 Sergey Kubushyn <ksi@koi8.net>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <dm.h>
+#include <environment.h>
 #include <i2c.h>
 #include <net.h>
 #include <netdev.h>
@@ -24,6 +25,7 @@
 #include <linux/errno.h>
 #include <hwconfig.h>
 #include <asm/mach-types.h>
+#include <asm/gpio.h>
 
 #ifdef CONFIG_MMC_DAVINCI
 #include <mmc.h>

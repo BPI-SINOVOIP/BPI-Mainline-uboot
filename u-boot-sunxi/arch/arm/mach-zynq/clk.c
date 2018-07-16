@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2013 Soren Brinkmann <soren.brinkmann@xilinx.com>
  * Copyright (C) 2013 Xilinx, Inc. All rights reserved.
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 #include <clk.h>
 #include <common.h>
@@ -94,7 +93,8 @@ int soc_clk_dump(void)
 
 			clk_free(&clk);
 
-			if (rate == (unsigned long)-ENOSYS)
+			if ((rate == (unsigned long)-ENOSYS) ||
+			    (rate == (unsigned long)-ENXIO))
 				printf("%10s%20s\n", name, "unknown");
 			else
 				printf("%10s%20lu\n", name, rate);

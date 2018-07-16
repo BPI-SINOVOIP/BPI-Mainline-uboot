@@ -1,17 +1,15 @@
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Configuation settings for the Renesas Solutions AP-325RXA board
  *
  * Copyright (C) 2008 Renesas Solutions Corp.
  * Copyright (C) 2008 Nobuhiro Iwamatsu <iwamatsu.nobuhiro@renesas.com>
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef __AP325RXA_H
 #define __AP325RXA_H
 
 #define CONFIG_CPU_SH7723	1
-#define CONFIG_AP325RXA	1
 
 #define CONFIG_DISPLAY_BOARDINFO
 #undef  CONFIG_SHOW_BOOT_PROGRESS
@@ -21,10 +19,7 @@
 #define AP325RXA_FLASH_BASE_1		(0xA0000000)
 #define AP325RXA_FLASH_BANK_SIZE	(128 * 1024 * 1024)
 
-#define CONFIG_SYS_TEXT_BASE	0x8FFC0000
-
 /* undef to save memory	*/
-#define CONFIG_SYS_LONGHELP
 /* Monitor Command Prompt */
 /* Buffer size for Console output */
 #define CONFIG_SYS_PBSIZE		256
@@ -41,7 +36,6 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_MEMTEST_START + (60 * 1024 * 1024))
 
 /* Enable alternate, more extensive, memory test */
-#undef  CONFIG_SYS_ALT_MEMTEST
 /* Scratch address used by the alternate memory test */
 #undef  CONFIG_SYS_MEMTEST_SCRATCH
 

@@ -1,6 +1,4 @@
-#
-# SPDX-License-Identifier:	GPL-2.0+
-#
+# SPDX-License-Identifier: GPL-2.0+
 
 dtb-y += bayleybay.dtb \
 	cherryhill.dtb \
@@ -12,7 +10,8 @@ dtb-y += bayleybay.dtb \
 	crownbay.dtb \
 	dfi-bt700-q7x-151.dtb \
 	edison.dtb \
-	efi.dtb \
+	efi-x86_app.dtb \
+	efi-x86_payload.dtb \
 	galileo.dtb \
 	minnowmax.dtb \
 	qemu-x86_i440fx.dtb \

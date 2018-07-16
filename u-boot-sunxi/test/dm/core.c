@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Tests for the core driver model code
  *
  * Copyright (c) 2013 Google, Inc
- *
- * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -862,3 +861,12 @@ static int dm_test_device_get_uclass_id(struct unit_test_state *uts)
 	return 0;
 }
 DM_TEST(dm_test_device_get_uclass_id, DM_TESTF_SCAN_PDATA);
+
+static int dm_test_uclass_names(struct unit_test_state *uts)
+{
+	ut_asserteq_str("test", uclass_get_name(UCLASS_TEST));
+	ut_asserteq(UCLASS_TEST, uclass_get_by_name("test"));
+
+	return 0;
+}
+DM_TEST(dm_test_uclass_names, DM_TESTF_SCAN_PDATA);

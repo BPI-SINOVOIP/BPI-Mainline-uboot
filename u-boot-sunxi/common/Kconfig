@@ -217,36 +217,6 @@ config BOOTCOMMAND
 	  This is the string of commands that will be used as bootcmd and if
 	  AUTOBOOT is set, automatically run.
 
-config BPI_CHIP
-	string "BPI_CHIP(a20/a31s/a83t/h3)"
-	default "a20"
-	---help---
-	BPI_CHIP (a20/a31s/a83t/h3)
-
-config BPI_BOARD
-	string "BPI_BOARD(bpi-m1/bpi-m1p/bpi-r1/bpi-m2/bpi-m2p/bpi-m3)"
-	default "bpi-m1"
-	---help---
-	BPI_BOARD(bpi-m1/bpi-m1p/bpi-r1/bpi-m2/bpi-m2p/bpi-m3)
-
-config BPI_SERVICE
-	string "BPI_SERVICE(linux/openelec)"
-	default "linux"
-	---help---
-	BPI_SERVICE(linux/openelec)
-
-config BPI_PATH
-	string "BPI_PATH(/bananapi/board/service/)"
-	default "/bananapi/bpi-all/linux4/"
-	---help---
-	BPI_PATH(/bananapi/board/service/)
-
-config BPI_UENVFILE
-	string "BPI_UENVFILE(bananapi/board/service/uEnv.txt)"
-	default "uEnv.txt"
-	---help---
-	BPI_UENVFILE(bananapi/board/service/uEnv.txt)
-
 menu "Console"
 
 config MENU
@@ -454,6 +424,7 @@ menu "Logging"
 
 config LOG
 	bool "Enable logging support"
+	select DM
 	help
 	  This enables support for logging of status and debug messages. These
 	  can be displayed on the console, recorded in a memory buffer, or
@@ -534,7 +505,28 @@ config LOG_TEST
 	  in various different ways to test that the logging system works
 	  correctly with varoius settings.
 
+config LOG_ERROR_RETURN
+	bool "Log all functions which return an error"
+	depends on LOG
+	help
+	  When an error is returned in U-Boot it is sometimes difficult to
+	  figure out the root cause. For eaxmple, reading from SPI flash may
+	  fail due to a problem in the SPI controller or due to the flash part
+	  not returning the expected information. This option changes
+	  log_ret() to log any errors it sees. With this option disabled,
+	  log_ret() is a nop.
+
+	  You can add log_ret() to all functions which return an error code.
+
 endmenu
+
+config SUPPORT_RAW_INITRD
+	bool "Enable raw initrd images"
+	help
+	  Note, defining the SUPPORT_RAW_INITRD allows user to supply
+	  kernel with raw initrd images. The syntax is slightly different, the
+	  address of the initrd must be augmented by it's size, in the following
+	  format: "<initrd address>:<initrd size>".
 
 config DEFAULT_FDT_FILE
 	string "Default fdt file"
@@ -563,19 +555,26 @@ config BOARD_LATE_INIT
 
 config DISPLAY_CPUINFO
 	bool "Display information about the CPU during start up"
-	default y if ARM || NIOS2 || X86 || XTENSA
+	default y if ARM || NIOS2 || X86 || XTENSA || M68K
 	help
 	  Display information about the CPU that U-Boot is running on
 	  when U-Boot starts up. The function print_cpuinfo() is called
 	  to do this.
 
 config DISPLAY_BOARDINFO
-	bool "Display information about the board during start up"
+	bool "Display information about the board during early start up"
 	default y if ARM || M68K || MIPS || PPC || SANDBOX || XTENSA
 	help
 	  Display information about the board that U-Boot is running on
 	  when U-Boot starts up. The board function checkboard() is called
 	  to do this.
+
+config DISPLAY_BOARDINFO_LATE
+	bool "Display information about the board during late start up"
+	help
+	  Display information about the board that U-Boot is running on after
+	  the relocation phase. The board function checkboard() is called to do
+	  this.
 
 menu "Start-up hooks"
 
@@ -604,6 +603,22 @@ config BOARD_EARLY_INIT_F
 	  Note that the normal serial console is not yet set up, but the
 	  debug UART will be available if enabled.
 
+config BOARD_EARLY_INIT_R
+	bool "Call board-specific init after relocation"
+	help
+	  Some boards need to perform initialisation as directly after
+	  relocation. With this option, U-Boot calls board_early_init_r()
+	  in the post-relocation init sequence.
+
+config LAST_STAGE_INIT
+	bool "Call board-specific as last setup step"
+	help
+	  Some boards need to perform initialisation immediately before control
+	  is passed to the command-line interpreter (e.g. for initializations
+	  that depend on later phases in the init sequence). With this option,
+	  U-Boot calls last_stage_init() before the command-line interpreter is
+	  started.
+
 endmenu
 
 menu "Security support"
@@ -615,6 +630,27 @@ config HASH
 	  algorithms (such as SHA1, MD5, CRC32). The API is defined in hash.h
 	  and the algorithms it supports are defined in common/hash.c. See
 	  also CMD_HASH for command-line access.
+
+endmenu
+
+menu "Update support"
+
+config UPDATE_TFTP
+	bool "Auto-update using fitImage via TFTP"
+	depends on FIT
+	help
+	  This option allows performing update of NOR with data in fitImage
+	  sent via TFTP boot.
+
+config UPDATE_TFTP_CNT_MAX
+	int "The number of connection retries during auto-update"
+	default 0
+	depends on UPDATE_TFTP
+
+config UPDATE_TFTP_MSEC_MAX
+	int "Delay in mSec to wait for the TFTP server during auto-update"
+	default 100
+	depends on UPDATE_TFTP
 
 endmenu
 
