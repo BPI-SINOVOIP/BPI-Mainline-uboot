@@ -8,7 +8,7 @@ BOARD="bpi-all"
 ARCH=arm
 KERNEL=zImage
 K="$T/../BPI-Mainline-kernel/linux-4.14"
-kernel="4.14.20-BPI-Kernel"
+kernel="4.14.55-BPI-Kernel"
 uboot="u-boot-2018.01"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
