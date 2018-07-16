@@ -9,7 +9,7 @@ ARCH=arm64
 KERNEL=Image
 K="$T/../BPI-Mainline-kernel/linux-4.14"
 kernel="4.14.55-BPI-64-Kernel"
-uboot="u-boot-2018.01"
+uboot="u-boot-2018.07"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
 echo "top dir $T"
