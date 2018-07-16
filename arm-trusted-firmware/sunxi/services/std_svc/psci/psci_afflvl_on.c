@@ -38,7 +38,6 @@
 #include <runtime_svc.h>
 #include <stddef.h>
 #include "psci_private.h"
-#include <debug.h>
 
 typedef int (*afflvl_on_handler_t)(unsigned long,
 				 aff_map_node_t *,

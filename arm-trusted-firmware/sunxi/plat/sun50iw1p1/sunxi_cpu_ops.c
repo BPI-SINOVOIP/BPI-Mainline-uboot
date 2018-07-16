@@ -70,19 +70,13 @@ void udelay(unsigned int delay)
 	__asm__ volatile (
 		"1:\tsubs %0, %0, #1\n"
 		"\tb.ne	1b"
-		:: "r" (delay * 1000UL)
+		: "=r" (delay) : "0" (delay * 1000UL) : "cc"
 	);
 }
 
-#ifdef SUNXI_CPUOPS_REAL_DELAY
 #define CPU_DELAY_SHORT		10
 #define CPU_DELAY_MEDIUM	20
 #define CPU_DELAY_LONG		30
-#else
-#define CPU_DELAY_SHORT		0
-#define CPU_DELAY_MEDIUM	0
-#define CPU_DELAY_LONG		0
-#endif
  
  void sun50i_set_secondary_entry(unsigned long entry, unsigned int cpu)
  {

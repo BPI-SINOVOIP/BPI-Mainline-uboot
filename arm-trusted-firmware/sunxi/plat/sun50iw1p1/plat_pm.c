@@ -169,15 +169,20 @@ int sunxi_affinst_standby(unsigned int power_state)
 static int32_t sunxi_power_down_common(uint32_t afflvl, uint64_t mpidr,
 				       uint64_t sec_entrypoint)
 {
-	int cpu_nr = (mpidr >> MPIDR_AFF0_SHIFT) & MPIDR_AFFLVL_MASK;
-	int cluster_nr = (mpidr >> MPIDR_AFF1_SHIFT) & MPIDR_AFFLVL_MASK;
-
 	/* Prevent interrupts from spuriously waking up this cpu */
 	arm_gic_cpuif_deactivate();
 
-	sun50i_cpu_power_down(cluster_nr, cpu_nr);
+	/* We can't turn ourselves off at this point, do this later. */
 
 	return PSCI_E_SUCCESS;
+}
+
+static void sunxi_core_power_down_wfi(uint64_t mpidr)
+{
+	int cpu_nr = (mpidr >> MPIDR_AFF0_SHIFT) & MPIDR_AFFLVL_MASK;
+	int cluster_nr = (mpidr >> MPIDR_AFF1_SHIFT) & MPIDR_AFFLVL_MASK;
+
+	sun50i_cpu_power_down(cluster_nr, cpu_nr);
 }
 
 /*******************************************************************************
@@ -282,6 +287,7 @@ static const plat_pm_ops_t sunxi_ops = {
 	.affinst_off		= sunxi_affinst_off,
 	.affinst_suspend	= sunxi_affinst_suspend,
 	.affinst_suspend_finish	= sunxi_affinst_suspend_finish,
+	.core_power_down_wfi	= sunxi_core_power_down_wfi,
 	.system_off		= sunxi_system_off,
 	.system_reset		= sunxi_system_reset
 };

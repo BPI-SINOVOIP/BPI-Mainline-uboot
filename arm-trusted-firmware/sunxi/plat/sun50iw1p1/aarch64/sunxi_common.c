@@ -56,6 +56,9 @@ plat_config_t plat_config;
  */
 const mmap_region_t sunxi_mmap[] = {
 
+	// SRAM regions
+	{ 0x0010000,			0x0010000,
+		0x0030000,			MT_DEVICE | MT_RW | MT_NS },
 	// MMI/O region used by peripherals from 0x100.0000 to 0x200.0000
 	{ 0x1000000,			0x1000000,
 		0x1000000,			MT_DEVICE | MT_RW | MT_SECURE },
@@ -149,4 +152,40 @@ uint16_t sunxi_get_socid(void)
 	reg = mmio_read_32(SRAM_VER_REG);
 	mmio_write_32(0x01c00024, reg & ~(1 << 15));
 	return reg >> 16;
+}
+
+struct spl_boot_file_head {
+	uint32_t  jump_instruction;
+	uint32_t  magic[2];
+	uint32_t  check_sum;
+	uint32_t  length;
+	uint8_t   spl_signature[4];
+	uint32_t  fel_script_address;
+	uint32_t  fel_uEnv_length;
+	uint32_t  offset_dt_name;
+	uint32_t  reserved1;
+	uint32_t  boot_media;
+	uint32_t  string_pool[13];
+};
+
+#define MAGIC_eGON	0x4e4f4765	/* "eGON" */
+#define MAGIC_BT0	0x3054422e	/* ".BT0" */
+#define MAGIC_FEL	0x4c45462e	/* ".FEL" */
+
+const char *get_dt_name(void)
+{
+	const struct spl_boot_file_head *spl_head = (void *)0x10000;
+
+	if (spl_head->magic[0] != MAGIC_eGON)
+	       return NULL;
+
+	if (spl_head->magic[1] != MAGIC_BT0 &&
+	    spl_head->magic[1] != MAGIC_FEL)
+		return NULL;
+
+	/* We need at least U-Boot SPL version 2 for the DT name feature. */
+	if (spl_head->spl_signature[3] < 2)
+		return NULL;
+
+	return (const char *)spl_head + spl_head->offset_dt_name;
 }

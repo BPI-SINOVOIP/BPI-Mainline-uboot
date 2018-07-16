@@ -140,11 +140,7 @@ int get_power_on_target_afflvl()
 	 * Sanity check the state of the cpu. It should be either suspend or "on
 	 * pending"
 	 */
-	do
-	{
-		state = psci_get_state(node); //wait cpu0 set this state --by wangwei
-	}while(state != PSCI_STATE_SUSPEND && state != PSCI_STATE_ON_PENDING);
-
+	state = psci_get_state(node);
 	assert(state == PSCI_STATE_SUSPEND || state == PSCI_STATE_ON_PENDING);
 #endif
 

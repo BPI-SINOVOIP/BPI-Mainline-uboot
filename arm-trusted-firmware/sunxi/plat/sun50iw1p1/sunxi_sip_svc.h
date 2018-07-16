@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2016,2017 ARM Limited and Contributors. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,47 +27,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __PLAT_SIP_SVC_H__
+#define __PLAT_SIP_SVC_H__
 
-#include <assert.h>
-#include <debug.h>
-#include <plat_config.h>
-#include <tzc400.h>
-#include <mmio.h>
-#include "sunxi_def.h"
-#include "sunxi_private.h"
+#include <stdint.h>
 
-#define SPC_BASE	0x1c23400ULL
+/* SMC function IDs for SiP Service queries */
+#define SIP_SVC_CALL_COUNT		0x8200ff00
+#define SIP_SVC_UID			0x8200ff01
+/*					0x8200ff02 is reserved */
+#define SIP_SVC_VERSION			0x8200ff03
 
-#define SPC_DECPORT_STA_REG(p) (SPC_BASE + ((p) * 0x0c) + 0x4)
-#define SPC_DECPORT_SET_REG(p) (SPC_BASE + ((p) * 0x0c) + 0x8)
-#define SPC_DECPORT_CLR_REG(p) (SPC_BASE + ((p) * 0x0c) + 0xc)
+/* Allwinner SiP Service Calls version numbers */
+#define SUNXI_SIP_SVC_VERSION_MAJOR	0x0
+#define SUNXI_SIP_SVC_VERSION_MINOR	0x1
 
-/*
- * For the moment we assume that all security programming is done by the
- * primary core.
- * TODO:
- * Might want to enable interrupt on violations when supported?
- */
-void sunxi_security_setup(void)
-{
-	int i;
+#define SMC_AARCH64_BIT			0x40000000
 
-	NOTICE("Configuring SPC Controller\n");
+/* Number of Allwinner SiP Calls implemented */
+#define SUNXI_COMMON_SIP_NUM_CALLS	1
 
-	/* set all devices to non-secure */
-	for (i = 0; i < 6; i++)
-		mmio_write_32(SPC_DECPORT_SET_REG(i), 0xff);
+/* Allwinner SiP Service Calls function IDs */
+#define SUNXI_SIP_MBOX_TRIGGER		0x82000001
 
-	/* switch RSB to secure
-	mmio_write_32(SPC_DECPORT_CLR_REG(3), 0x08);
-	*/
-	
-	/* set CCMU mbus_sec, bus_sec, pll_sec to non-secure */
-	mmio_write_32(0x01c20000+0x2f0, 0x7);
-
-	/* set R_PRCM power_sec, pll_sec, cpus_clk to non-secure */
-	mmio_write_32(0x01f01400+0x1d0, 0x7);
-	
-	/* Set DMA channels 0-7 to non-secure */
-	mmio_write_32(0x01c02000+0x20, 0xff);
-}
+#endif /* __PLAT_SIP_SVC_H__ */

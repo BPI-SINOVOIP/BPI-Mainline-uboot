@@ -31,6 +31,7 @@
 #include <debug.h>
 #include <plat_config.h>
 #include <mmio.h>
+#include <string.h>
 #include <sys/errno.h>
 #include "sunxi_def.h"
 #include "sunxi_private.h"
@@ -213,20 +214,11 @@ static int pmic_init(uint16_t hw_addr, uint8_t rt_addr)
 }
 
 /* Setup the PMIC: DCDC1 to 3.3V, enable DC1SW and DLDO4 */
-static int pmic_setup(void)
+static int pmic_setup(const char *dt_name)
 {
-	int ret;
+	unsigned int ret;
 
-	ret = sunxi_pmic_read(0x20);
-	if (ret != 0x0e && ret != 0x11) {
-		int voltage = (ret & 0x1f) * 10 + 16;
-
-		NOTICE("PMIC: DCDC1 voltage is an unexpected %d.%dV\n",
-		       voltage / 10, voltage % 10);
-		return -1;
-	}
-
-	if (ret != 0x11) {
+	if (sunxi_pmic_read(0x20) != 0x11) {
 		/* Set DCDC1 voltage to 3.3 Volts */
 		ret = sunxi_pmic_write(0x20, 0x11);
 		if (ret < 0) {
@@ -235,18 +227,13 @@ static int pmic_setup(void)
 		}
 	}
 
+	/* Enable DC1SW to power PHY, DLDO4 for WiFi and DLDO1 for HDMI */
 	ret = sunxi_pmic_read(0x12);
-	if ((ret & 0x37) != 0x01) {
-		NOTICE("PMIC: Output power control 2 is an unexpected 0x%x\n",
-		       ret);
-		return -3;
-	}
-
-	if ((ret & 0xc9) != 0xc9) {
-		/* Enable DC1SW to power PHY, DLDO4 for WiFi and DLDO1 for HDMI */
-		ret = sunxi_pmic_write(0x12, ret | 0xc8);
+	if ((ret & 0xd9) != 0xd9) {
+		ret = sunxi_pmic_write(0x12, ret | 0xd8);
 		if (ret < 0) {
-			NOTICE("PMIC: error %d enabling DC1SW/DLDO4/DLDO1\n", ret);
+			NOTICE("PMIC: error %d enabling DC1SW/DLDO4/DLDO1\n",
+			       ret);
 			return -4;
 		}
 	}
@@ -255,16 +242,60 @@ static int pmic_setup(void)
 	 * On the Pine64 the AXP is wired wrongly: to reset DCDC5 to 1.24V.
 	 * However the DDR3L chips require 1.36V instead. Fix this up. Other
 	 * boards hopefully do the right thing here and don't require any
-	 * changes. This should be further confined once we are able to
-	 * reliably detect a Pine64 board.
+	 * changes.
 	 */
-	ret = sunxi_pmic_read(0x24);	/* read DCDC5 register */
-	if ((ret & 0x7f) == 0x26) {	/* check for 1.24V value */
-		NOTICE("PMIC: fixing DRAM voltage from 1.24V to 1.36V\n");
-		sunxi_pmic_write(0x24, 0x2c);
+	ret = sunxi_pmic_read(0x24) & 0x7f;	/* read DCDC5 register */
+	if (!strcmp(dt_name, "sun50i-a64-pine64-plus")) {
+		if (ret == 0x26) {	/* check for 1.24V value */
+			NOTICE("PMIC: fixing DRAM voltage from 1.24V to 1.36V\n");
+			sunxi_pmic_write(0x24, 0x2c);
+			ret = 0x2c;
+		}
 	}
- 
+	/* reg 24h: DCDC5: 0.80-1.12V: 10mv/step, 1.14-1.84V: 20mv/step */
+	if (ret > 0x20)
+		ret = ((ret - 0x20) * 2) + 112;
+	else
+		ret = ret + 80;
+	INFO("PMIC: DRAM voltage: %u.%s%uV\n", ret / 100,
+	     (ret % 100) > 10 ? "" : "0", ret % 100);
+
+	/* Enable the LCD power planes to get the display up early. */
+	if (!strcmp(dt_name, "sun50i-a64-pinebook")) {
+		sunxi_pmic_write(0x16, 0x12); /* DLDO2 = VCC-MIPI = 2.5V */
+		ret = sunxi_pmic_read(0x12);
+		sunxi_pmic_write(0x12, ret | 0x10);
+
+		sunxi_pmic_write(0x1c, 0x0a); /* FLDO1 = HSIC = 1.2V */
+		ret = sunxi_pmic_read(0x13);
+		sunxi_pmic_write(0x13, ret | 0x4);
+
+		INFO("PMIC: enabled Pinebook display\n");
+	}
+
+	/* The same thing, but for TERES I */
+	if (!strcmp(dt_name, "sun50i-a64-teres-i")) {
+		sunxi_pmic_write(0x16, 0x12); /* DLDO2 = VCC-EDP-2V5 = 2.5V */
+		sunxi_pmic_write(0x17, 0x05); /* DLDO3 = VCC-EDP-1V2 = 1.2V */
+
+		ret = sunxi_pmic_read(0x12);
+		sunxi_pmic_write(0x12, ret | 0x10);	/* enable DLDO2 */
+		udelay(1000);				/* wait > 2ms */
+		sunxi_pmic_write(0x12, ret | 0x30);	/* enable DLDO3 */
+
+		INFO("PMIC: enabled TERES I display power\n");
+	}
+
 	sunxi_pmic_write(0x15, 0x1a);	/* DLDO1 = VCC3V3_HDMI voltage = 3.3V */
+	sunxi_pmic_write(0x21, 60);		/* Set DCDC2/CPU voltage to 1.1V */
+	sunxi_pmic_write(0x16, 0x12);	/* DLDO2 = VCC2V5_EDP voltage = 2.5V */
+	sunxi_pmic_write(0x1c, 0xa);	/* FLDO1 = VCC1V2_EDP voltage = 1.2V */
+	sunxi_pmic_write(0x91, 0x1a);	/* GPIO0LDO voltage = 3.3V */
+	sunxi_pmic_write(0x90, 0x3);	/* Enable GPIO0LDO */
+	sunxi_pmic_write(0x30, sunxi_pmic_read(0x30) | BIT(2)); /* Enable USB at Lime64 */
+	ret = sunxi_pmic_read(0x13);
+	/* Enable FLDO1 to power up eDP bridge */
+	ret = sunxi_pmic_write(0x13, ret | 0x4);
 
 	return 0;
 }
@@ -272,11 +303,11 @@ static int pmic_setup(void)
 /*
  * Program the AXP803 via the RSB bus.
  */
-int sunxi_pmic_setup(void)
+int sunxi_pmic_setup(const char *dt_name)
 {
 	int ret;
 
-	NOTICE("Configuring AXP PMIC\n");
+	INFO("Configuring AXP PMIC\n");
 
 	ret = init_rsb();
 	if (ret && ret != -EEXIST) {
@@ -292,9 +323,9 @@ int sunxi_pmic_setup(void)
 		}
 	}
 
-	ret = pmic_setup();
+	ret = pmic_setup(dt_name);
 	if (!ret)
-		NOTICE("PMIC: setup successful\n");
+		INFO("PMIC: setup successful\n");
 	else
 		ERROR("PMIC: setup failed: %d\n", ret);
 

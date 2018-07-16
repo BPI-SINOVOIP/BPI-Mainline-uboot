@@ -38,7 +38,6 @@
 #include <platform.h>
 #include <runtime_svc.h>
 #include <stddef.h>
-#include <debug.h>
 #include "psci_private.h"
 
 typedef int (*afflvl_suspend_handler_t)(aff_map_node_t *,
@@ -147,6 +146,12 @@ static int psci_afflvl0_suspend(aff_map_node_t *cpu_node,
 	/* Set the secure world (EL3) re-entry point after BL1 */
 	psci_entrypoint = (unsigned long) psci_aff_suspend_finish_entry;
 
+	/*
+	 * Arch. management. Perform the necessary steps to flush all
+	 * cpu caches.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL0);
+
 	if (!psci_plat_pm_ops->affinst_suspend)
 		return PSCI_E_SUCCESS;
 
@@ -156,19 +161,11 @@ static int psci_afflvl0_suspend(aff_map_node_t *cpu_node,
 	 * platform defined mailbox with the psci entrypoint,
 	 * program the power controller etc.
 	 */
-	rc = psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
 						 psci_entrypoint,
 						 ns_entrypoint,
 						 cpu_node->level,
 						 psci_get_phys_state(cpu_node));
-
-	/*
-	 * Arch. management. Perform the necessary steps to flush all
-	 * cpu caches.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL0);
-
-	return rc;
 }
 
 static int psci_afflvl1_suspend(aff_map_node_t *cluster_node,
@@ -178,10 +175,15 @@ static int psci_afflvl1_suspend(aff_map_node_t *cluster_node,
 {
 	unsigned int plat_state;
 	unsigned long psci_entrypoint;
-	int rc;
 
 	/* Sanity check the cluster level */
 	assert(cluster_node->level == MPIDR_AFFLVL1);
+
+	/*
+	 * Arch. management: Flush all levels of caches to PoC if the
+	 * cluster is to be shutdown.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL1);
 
 	if (!psci_plat_pm_ops->affinst_suspend)
 		return PSCI_E_SUCCESS;
@@ -196,18 +198,11 @@ static int psci_afflvl1_suspend(aff_map_node_t *cluster_node,
 	 */
 	plat_state = psci_get_phys_state(cluster_node);
 	psci_entrypoint = (unsigned long) psci_aff_suspend_finish_entry;
-	rc = psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
 						 psci_entrypoint,
 						 ns_entrypoint,
 						 cluster_node->level,
 						 plat_state);
-	/*
-	 * Arch. management: Flush all levels of caches to PoC if the
-	 * cluster is to be shutdown.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL1);
-
-	return rc;
 }
 
 
@@ -218,7 +213,6 @@ static int psci_afflvl2_suspend(aff_map_node_t *system_node,
 {
 	unsigned int plat_state;
 	unsigned long psci_entrypoint;
-	int rc;
 
 	/* Cannot go beyond this */
 	assert(system_node->level == MPIDR_AFFLVL2);
@@ -228,6 +222,12 @@ static int psci_afflvl2_suspend(aff_map_node_t *system_node,
 	 * action needs to be taken
 	 */
 	plat_state = psci_get_phys_state(system_node);
+
+	/*
+	 * Arch. management: Flush all levels of caches to PoC if the
+	 * system is to be shutdown.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL2);
 
 	/*
 	 * Plat. Management : Allow the platform to do its bookeeping
@@ -244,18 +244,11 @@ static int psci_afflvl2_suspend(aff_map_node_t *system_node,
 	 */
 	plat_state = psci_get_phys_state(system_node);
 	psci_entrypoint = (unsigned long) psci_aff_suspend_finish_entry;
-	rc = psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_suspend(read_mpidr_el1(),
 						 psci_entrypoint,
 						 ns_entrypoint,
 						 system_node->level,
 						 plat_state);
-	/*
-	 * Arch. management: Flush all levels of caches to PoC if the
-	 * system is to be shutdown.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL2);
-
-	return rc;
 }
 
 static const afflvl_suspend_handler_t psci_afflvl_suspend_handlers[] = {

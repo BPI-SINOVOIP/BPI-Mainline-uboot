@@ -161,6 +161,11 @@ code_start:
 	ldr	x1, =__COHERENT_RAM_UNALIGNED_SIZE__
 	bl	zeromem16
 
+	/* ---------------------------------------------
+	 * Initialize the cpu_ops pointer.
+	 * ---------------------------------------------
+	 */
+	bl      init_cpu_ops
 
 	/* ---------------------------------------------
 	 * Use SP_EL0 for the C runtime stack.

@@ -163,6 +163,7 @@ typedef struct plat_pm_ops {
 	int (*affinst_suspend_finish)(unsigned long,
 				      unsigned int,
 				      unsigned int);
+	void (*core_power_down_wfi)(unsigned long);
 	void (*system_off)(void) __dead2;
 	void (*system_reset)(void) __dead2;
 } plat_pm_ops_t;

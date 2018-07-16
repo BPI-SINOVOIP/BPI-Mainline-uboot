@@ -62,6 +62,12 @@ static int psci_afflvl0_off(aff_map_node_t *cpu_node)
 			return rc;
 	}
 
+	/*
+	 * Arch. management. Perform the necessary steps to flush all
+	 * cpu caches.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL0);
+
 	if (!psci_plat_pm_ops->affinst_off)
 		return PSCI_E_SUCCESS;
 
@@ -69,24 +75,21 @@ static int psci_afflvl0_off(aff_map_node_t *cpu_node)
 	 * Plat. management: Perform platform specific actions to turn this
 	 * cpu off e.g. exit cpu coherency, program the power controller etc.
 	 */
-	rc = psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
 					     cpu_node->level,
 					     psci_get_phys_state(cpu_node));
-	/*
-	 * Arch. management. Perform the necessary steps to flush all
-	 * cpu caches.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL0);
-
-	return rc;
 }
 
 static int psci_afflvl1_off(aff_map_node_t *cluster_node)
 {
-	int rc;
-
 	/* Sanity check the cluster level */
 	assert(cluster_node->level == MPIDR_AFFLVL1);
+
+	/*
+	 * Arch. Management. Flush all levels of caches to PoC if
+	 * the cluster is to be shutdown.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL1);
 
 	if (!psci_plat_pm_ops->affinst_off)
 		return PSCI_E_SUCCESS;
@@ -96,23 +99,13 @@ static int psci_afflvl1_off(aff_map_node_t *cluster_node)
 	 * specific bookeeping e.g. turn off interconnect coherency,
 	 * program the power controller etc.
 	 */
-	rc = psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
 					     cluster_node->level,
 					     psci_get_phys_state(cluster_node));
-
-	/*
-	 * Arch. Management. Flush all levels of caches to PoC if
-	 * the cluster is to be shutdown.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL1);
-
-	return rc;
 }
 
 static int psci_afflvl2_off(aff_map_node_t *system_node)
 {
-	int rc;
-
 	/* Cannot go beyond this level */
 	assert(system_node->level == MPIDR_AFFLVL2);
 
@@ -121,6 +114,12 @@ static int psci_afflvl2_off(aff_map_node_t *system_node)
 	 * action needs to be taken
 	 */
 
+	/*
+	 * Arch. Management. Flush all levels of caches to PoC if
+	 * the system is to be shutdown.
+	 */
+	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL2);
+
 	if (!psci_plat_pm_ops->affinst_off)
 		return PSCI_E_SUCCESS;
 
@@ -128,17 +127,9 @@ static int psci_afflvl2_off(aff_map_node_t *system_node)
 	 * Plat. Management : Allow the platform to do its bookeeping
 	 * at this affinity level
 	 */
-	rc = psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
+	return psci_plat_pm_ops->affinst_off(read_mpidr_el1(),
 					     system_node->level,
 					     psci_get_phys_state(system_node));
-
-	/*
-	 * Arch. Management. Flush all levels of caches to PoC if
-	 * the system is to be shutdown.
-	 */
-	psci_do_pwrdown_cache_maintenance(MPIDR_AFFLVL2);
-
-	return rc;
 }
 
 static const afflvl_off_handler_t psci_afflvl_off_handlers[] = {

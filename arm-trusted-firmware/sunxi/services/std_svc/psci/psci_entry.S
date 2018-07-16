@@ -70,11 +70,18 @@ psci_aff_common_finish_entry:
 	msr	sctlr_el3, x0
 	isb
 #endif
+
 	/* ---------------------------------------------
 	 * Initialise the pcpu cache pointer for the CPU
 	 * ---------------------------------------------
 	 */
 	bl	init_cpu_data_ptr
+
+	/* ---------------------------------------------
+	 * Initialize the cpu_ops pointer.
+	 * ---------------------------------------------
+	 */
+	bl	init_cpu_ops
 
 	/* ---------------------------------------------
 	 * Set the exception vectors

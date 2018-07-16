@@ -234,7 +234,7 @@ CFLAGS			+= 	-nostdinc -pedantic -ffreestanding -Wall	\
 CFLAGS			+=	-ffunction-sections -fdata-sections
 LDFLAGS			+=	--fatal-warnings -O1
 LDFLAGS			+=	--gc-sections
-#LDFLAGS		+=	--fix-cortex-a53-843419
+LDFLAGS			+=	$(if $(shell $(LD) -v --fix-cortex-a53-843419 > /dev/null 2>&1 && echo 1),--fix-cortex-a53-843419)
 
 
 CC			:=	${CROSS_COMPILE}gcc

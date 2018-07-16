@@ -64,7 +64,7 @@ static int pll_wait_until_stable(uintptr_t addr)
 	return 0;
 }
 
-int sunxi_setup_clocks(uint16_t socid)
+int sunxi_setup_clocks(uint16_t socid, const char *dt_name)
 {
 	uint32_t reg;
 

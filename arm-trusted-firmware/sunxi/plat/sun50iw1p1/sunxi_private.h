@@ -57,6 +57,7 @@ void sunxi_configure_mmu_el3(unsigned long total_base,
 int sunxi_config_setup(void);
 
 uint16_t sunxi_get_socid(void);
+const char *get_dt_name(void);
 
 /* Declarations for sunxi_topology.c */
 int plat_setup_topology(void);
@@ -68,12 +69,12 @@ void sunxi_io_setup(void);
 void sunxi_security_setup(void);
 
 /* Declarations for sunxi_power.c */
-int sunxi_pmic_setup(void);
+int sunxi_pmic_setup(const char *dt_name);
 int sunxi_pmic_read(uint8_t address);
 int sunxi_pmic_write(uint8_t address, uint8_t value);
 
 void udelay(unsigned int delay);
-int sunxi_setup_clocks(uint16_t socid);
+int sunxi_setup_clocks(uint16_t socid, const char *dt_name);
 
 /* Gets the SPSR for BL33 entry */
 uint32_t sunxi_get_spsr_for_bl33_entry(int aarch);
