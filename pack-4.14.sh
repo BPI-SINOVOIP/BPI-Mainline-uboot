@@ -4,13 +4,11 @@
 
 TOPDIR=`pwd`
 T="$TOPDIR"
-BOARD="bpi-64"
-ARCH=arm64
-KERNEL=Image
-#K="$T/../BPI-Mainline-kernel/linux-4.14"
-K="$T/../BPI-Mainline-kernel/linux-4.19"
-#kernel="4.14.55-BPI-64-Kernel"
-kernel="4.19.0-BPI-64-Kernel"
+BOARD="bpi-all"
+ARCH=arm
+KERNEL=zImage
+K="$T/../BPI-Mainline-kernel/linux-4.14"
+kernel="4.14.55-BPI-Kernel"
 uboot="u-boot-2018.07"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
@@ -44,9 +42,8 @@ R="${SD}/BPI-ROOT"
 	mkdir -p $B/$EXTLINUX/extlinux/dtb
 	cp -a $T/extlinux/${BOARD}/* $B/$EXTLINUX/extlinux
 	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/${KERNEL} $B/$EXTLINUX/extlinux/${KERNEL}
-	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/dts/allwinner $B/$EXTLINUX/extlinux/dtb/allwinner
-	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/.sun*
-	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/overlay/.sun*
+	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/dts/* $B/$EXTLINUX/extlinux/dtb
+	rm -f $B/$EXTLINUX/extlinux/dtb/overlay/.sun*
 
 	#
 	## copy files to BPI-ROOT

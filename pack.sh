@@ -7,8 +7,10 @@ T="$TOPDIR"
 BOARD="bpi-all"
 ARCH=arm
 KERNEL=zImage
-K="$T/../BPI-Mainline-kernel/linux-4.14"
-kernel="4.14.55-BPI-Kernel"
+#K="$T/../BPI-Mainline-kernel/linux-4.14"
+K="$T/../BPI-Mainline-kernel/linux-4.19"
+#kernel="4.14.55-BPI-Kernel"
+kernel="4.19.0-BPI-Kernel"
 uboot="u-boot-2018.07"
 EXTLINUX=bananapi/${BOARD}/linux4/
 

@@ -7,10 +7,8 @@ T="$TOPDIR"
 BOARD="bpi-64"
 ARCH=arm64
 KERNEL=Image
-#K="$T/../BPI-Mainline-kernel/linux-4.14"
-K="$T/../BPI-Mainline-kernel/linux-4.19"
-#kernel="4.14.55-BPI-64-Kernel"
-kernel="4.19.0-BPI-64-Kernel"
+K="$T/../BPI-Mainline-kernel/linux-4.14"
+kernel="4.14.55-BPI-64-Kernel"
 uboot="u-boot-2018.07"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
