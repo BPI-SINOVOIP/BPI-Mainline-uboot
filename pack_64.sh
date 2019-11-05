@@ -7,18 +7,17 @@ T="$TOPDIR"
 BOARD="bpi-64"
 ARCH=arm64
 KERNEL=Image
-#K="$T/../BPI-Mainline-kernel/linux-4.14"
-K="$T/../BPI-Mainline-kernel/linux-4.19"
-#kernel="4.14.55-BPI-64-Kernel"
-kernel="4.19.0-BPI-64-Kernel"
-uboot="u-boot-2018.07"
+KVER=5.1.1
+K="$T/linux-${KVER}"
+kernel="${KVER}-BPI-64-Kernel"
+uboot="u-boot-2019.07"
 EXTLINUX=bananapi/${BOARD}/linux4/
 
 echo "top dir $T"
 
 cp_download_files()
 {
-SD="$T/SD/${BOARD}"
+SD="$T/SD_${KVER}/${BOARD}"
 U="${SD}/100MB"
 B="${SD}/BPI-BOOT"
 R="${SD}/BPI-ROOT"
@@ -37,7 +36,7 @@ R="${SD}/BPI-ROOT"
 	## copy files to 100MB
 	#
 	#cp -a $T/out/100MB/* $U
-	cp -a $T/u-boot-sunxi/out/*.img.gz $U
+	cp -a $T/${uboot}/out/*.img.gz $U
 	#
 	## copy files to BPI-BOOT
 	#
@@ -47,12 +46,25 @@ R="${SD}/BPI-ROOT"
 	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/dts/allwinner $B/$EXTLINUX/extlinux/dtb/allwinner
 	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/.sun*
 	rm -f $B/$EXTLINUX/extlinux/dtb/allwinner/overlay/.sun*
+	mkdir -p $B/efi
+	cp -a $T/efi/* $B/efi
 
 	#
 	## copy files to BPI-ROOT
 	#
 	mkdir -p $R/usr/lib/u-boot/bananapi/${uboot}
 	cp -a $U/*.gz $R/usr/lib/u-boot/bananapi/${uboot}
+	#
+	## copy files to BPI-ROOT/boot
+	#
+	rm -rf $R/boot
+	mkdir -p $R/boot
+	cp -a $K/output/${BOARD}/arch/${ARCH}/boot/${KERNEL}.gz $R/boot/vmlinuz-5.1.1-bpi-64
+	mkdir -p $R/efi
+	cp -a $T/efi/* $R/efi
+	#
+	## copy files to BPI-ROOT/lib/modules
+	#
 	rm -rf $R/lib/modules
 	mkdir -p $R/lib/modules
 	cp -a $K/output/${BOARD}/out/lib/modules/${kernel} $R/lib/modules
@@ -65,7 +77,7 @@ R="${SD}/BPI-ROOT"
 	#(cd $R ; tar czvf $SD/${kernel}.tgz lib/modules)
 	(cd $R ; tar czvf $SD/${kernel}-net.tgz lib/modules/${kernel}/kernel/net)
 	(cd $R ; mv lib/modules/${kernel}/kernel/net $R/net)
-	(cd $R ; tar czvf $SD/${kernel}.tgz lib/modules)
+	(cd $R ; tar czvf $SD/${kernel}.tgz efi boot lib/modules)
 	(cd $R ; mv $R/net lib/modules/${kernel}/kernel/net)
 	# BPI-ROOT: BOOTLOADER
 	(cd $R ; tar czvf $SD/BOOTLOADER-${BOARD}-linux4.tgz usr/lib/u-boot/bananapi)
