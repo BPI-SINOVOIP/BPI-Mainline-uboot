@@ -71,15 +71,15 @@ R="${SD}/BPI-ROOT"
 	## create files for bpi-tools & bpi-migrate
 	#
 	# BPI-BOOT
-	(cd $B ; tar czvf $SD/BPI-BOOT-${BOARD}-linux5.tgz .)
+	(cd $B ; tar cJvf $SD/BPI-BOOT-${BOARD}-linux5.tgz .)
 	# BPI-ROOT: kernel modules
-	#(cd $R ; tar czvf $SD/${kernel}.tgz lib/modules)
-	(cd $R ; tar czvf $SD/${kernel}-net.tgz lib/modules/${kernel}/kernel/net)
+	#(cd $R ; tar cJvf $SD/${kernel}.tgz lib/modules)
+	(cd $R ; tar cJvf $SD/${kernel}-net.tgz lib/modules/${kernel}/kernel/net)
 	(cd $R ; mv lib/modules/${kernel}/kernel/net $R/net)
-	(cd $R ; tar czvf $SD/${kernel}.tgz efi boot lib/modules)
+	(cd $R ; tar cJvf $SD/${kernel}.tgz efi boot lib/modules)
 	(cd $R ; mv $R/net lib/modules/${kernel}/kernel/net)
 	# BPI-ROOT: BOOTLOADER
-	(cd $R ; tar czvf $SD/BOOTLOADER-${BOARD}-linux5.tgz usr/lib/u-boot/bananapi)
+	(cd $R ; tar cJvf $SD/BOOTLOADER-${BOARD}-linux5.tgz usr/lib/u-boot/bananapi)
 
 
 	return #SKIP
