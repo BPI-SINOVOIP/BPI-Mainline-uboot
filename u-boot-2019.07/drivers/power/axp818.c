@@ -29,6 +29,7 @@ static u8 axp818_mvolt_to_cfg(int mvolt, int min, int max, int div)
 int axp_set_dcdc1(unsigned int mvolt)
 {
 	int ret;
+	printf("BPI-M3:[AXP81X]: axp_set_dcdc1\n");
 	u8 cfg = axp818_mvolt_to_cfg(mvolt, 1600, 3400, 100);
 
 	if (mvolt == 0)
@@ -234,11 +235,62 @@ int axp_set_sw(bool on)
 				AXP818_OUTPUT_CTRL2_SW_EN);
 }
 
+#ifdef BPI_M3
+#else
+extern int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
+
+int axp81_dump_reg(void)
+{
+	int i;
+	u8 reg_value;
+	int ret;
+	for(i=0;i<=0x3e;i++)
+	{
+		ret = pmic_bus_read(i, &reg_value);
+		if (ret)
+			return ret;
+		printf("[AXP81X]:[%x]=[%x]\n", i , reg_value);
+	}
+	return 0;
+}
+
+int axp81_probe_vbus_cur_limit(void)
+{
+	u8 reg_value;
+	int ret;
+#define	AC_VAL	0x85
+
+	axp81_dump_reg();
+	ret = pmic_bus_read(0x3A, &reg_value);
+	if (ret)
+		return ret;
+	printf("BPI-M3:[AXP81X]:[%x]=[%x]\n", 0x3A , reg_value);
+	if((reg_value !=AC_VAL)) {
+		printf("BPI-M3: [AXP81X]: set [%x]=[%x]\n", 0x3A , AC_VAL);
+		pmic_bus_write(0x3A, AC_VAL);
+		ret = pmic_bus_read(0x3A, &reg_value);
+		if (ret)
+			return ret;
+		printf("BPI-M3:[AXP81X]: read [%x]=[%x]\n", 0x3A , reg_value);
+		printf("BPI-M3: [AXP81X]: set [%x]=[%x]\n", 0x35 , 0x83);
+		pmic_bus_write(0x35, 0x83);
+		ret = pmic_bus_read(0x35, &reg_value);
+		if (ret)
+			return ret;
+		printf("BPI-M3:[AXP81X]: read [%x]=[%x]\n", 0x35 , reg_value);
+		printf("BPI-M3:[AXP81X]: do_reset\n");
+		do_reset(NULL, 0, 0, NULL);
+	}
+	return 0;
+}
+#endif
+
 int axp_init(void)
 {
 	u8 axp_chip_id;
 	int ret;
 
+	printf("BPI-M3:[AXP81X]: axp_init\n");
 	ret = pmic_bus_init();
 	if (ret)
 		return ret;
@@ -247,6 +299,10 @@ int axp_init(void)
 	if (ret)
 		return ret;
 
+#ifdef BPI_M3
+#else
+	axp81_probe_vbus_cur_limit();
+#endif
 	if (!(axp_chip_id == 0x51))
 		return -ENODEV;
 	else
