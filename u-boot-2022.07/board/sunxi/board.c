@@ -251,6 +251,15 @@ int board_init(void)
 		}
 	}
 
+#if CONFIG_MACH_SUN50I_H616
+	/*
+	 * The bit[16] of register reg[0x03000000] must be zero for the THS
+	 * driver to work properly in the kernel. The BSP u-boot is putting
+	 * the whole register to zero so we are doing the same.
+	 */
+	writel(0x0, SUNXI_SRAMC_BASE);
+#endif
+
 #if CONFIG_IS_ENABLED(DM_I2C)
 	/*
 	 * Temporary workaround for enabling I2C clocks until proper sunxi DM
@@ -578,6 +587,11 @@ void sunxi_board_init(void)
 #ifdef CONFIG_LED_STATUS
 	if (IS_ENABLED(CONFIG_SPL_DRIVERS_MISC))
 		status_led_init();
+#endif
+
+#ifdef CONFIG_MACH_SUN8I_H3
+	/* turn on power LED (PL10) on H3 boards */
+	gpio_direction_output(SUNXI_GPL(10), 1);
 #endif
 
 #ifdef CONFIG_SY8106A_POWER

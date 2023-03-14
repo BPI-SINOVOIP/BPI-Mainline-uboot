@@ -144,6 +144,16 @@
 #define CONFIG_SPL_PAD_TO		32768		/* decimal for 'dd' */
 #endif
 
+#if defined CONFIG_VIDEO || defined CONFIG_DM_VIDEO
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_SPLASH_SCREEN_ALIGN
+#define CONFIG_BMP_16BPP
+#define CONFIG_BMP_24BPP
+#define CONFIG_BMP_32BPP
+#define CONFIG_VIDEO_BMP_RLE8
+#endif
+
 /* Ethernet support */
 
 #ifdef CONFIG_USB_EHCI_HCD
@@ -328,8 +338,14 @@
 #include <config_distro_bootcmd.h>
 
 #ifdef CONFIG_USB_KEYBOARD
+#if defined CONFIG_VIDEO || defined CONFIG_DM_VIDEO
+#define CONSOLE_STDIN_SETTINGS \
+	"preboot=run loadsplash; usb start\0" \
+	"stdin=serial,usbkbd\0"
+#else
 #define CONSOLE_STDIN_SETTINGS \
 	"stdin=serial,usbkbd\0"
+#endif
 #else
 #define CONSOLE_STDIN_SETTINGS \
 	"stdin=serial\0"
