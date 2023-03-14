@@ -1,11 +1,10 @@
 #!/bin/bash
 TOPDIR=`pwd`
-TOOLCHAIN=gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
+TOOLCHAIN=gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf
 export PATH=$TOPDIR/toolchains/$TOOLCHAIN/bin:$PATH
 #cd u-boot-sunxi
 #cd u-boot-2019.04
-#cd u-boot-2019.07
-cd u-boot-2022.07
+cd u-boot-2019.07
 #./bpi-r2.sh
 #./bpi-m2u.sh
 #./bpi-m2b.sh
@@ -20,7 +19,7 @@ cd u-boot-2022.07
 #./bpi-m1.sh
 #exit
 ./bpi-r2.sh
-#./bpi-p2z.sh
+./bpi-p2z.sh
 ./bpi-m2z.sh
 ./bpi-m2m.sh
 ./bpi-m2b.sh
